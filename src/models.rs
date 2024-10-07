@@ -11,16 +11,24 @@ pub struct StorageClient {
     pub(crate) project_url: String,
     /// WARN: The `service role` key has the ability to bypass Row Level Security. Never share it publicly.
     pub(crate) api_key: String,
-    pub(crate) headers: HeaderMap,
 }
 
+#[derive(Serialize, Deserialize)]
+pub(crate) struct CreateBucket {
+    pub id: Option<String>,
+    pub name: String,
+    pub public: bool,
+    pub options: CreateBucketOptions,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct CreateBucketOptions {
     /// The visibility of the bucket. Public buckets don't require an authorization token to download objects, but still require a valid token for all other operations.
-    public: bool,
+    // pub public: bool,
     /// the allowed mime types that this bucket can accept during upload. The default value is null, which allows files with all mime types to be uploaded.
-    allowed_mime_type: Option<Vec<String>>,
+    pub allowed_mime_type: Option<Vec<String>>,
     /// The max file size in bytes that can be uploaded to this bucket. The global file size limit takes precedence over this value. No maximum size is set by default.
-    file_size_limit: Option<u64>,
+    pub file_size_limit: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -196,3 +204,5 @@ impl From<MimeType> for String {
         mime.to_string()
     }
 }
+
+pub const HEADER_API_KEY: &str = "apikey";
