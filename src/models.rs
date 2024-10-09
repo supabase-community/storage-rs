@@ -1,34 +1,40 @@
 use std::fmt;
 
-use reqwest::{header::HeaderMap, Client};
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 /// Supabase Storage Client
 pub struct StorageClient {
-    pub(crate) client: Client,
+    pub client: Client,
     /// REST endpoint for querying and managing your database
     /// Example: https://<project id>.supabase.co
-    pub(crate) project_url: String,
+    pub project_url: String,
     /// WARN: The `service role` key has the ability to bypass Row Level Security. Never share it publicly.
-    pub(crate) api_key: String,
+    pub api_key: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct CreateBucket {
+    /// The ID of the bucket used for making updates or deletion
     pub id: Option<String>,
+    /// The visible name of the bucket in your dashboard
     pub name: String,
+    /// The visibility of the bucket. Public buckets don't require an authorization token to download objects, but still require a valid token for all other operations.
     pub public: bool,
-    pub options: CreateBucketOptions,
+    /// the allowed mime types that this bucket can accept during upload. The default value is null, which allows files with all mime types to be uploaded.
+    pub allowed_mime_types: Option<Vec<String>>,
+    /// The max file size in bytes that can be uploaded to this bucket. The global file size limit takes precedence over this value. No maximum size is set by default.
+    pub file_size_limit: Option<u64>,
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct CreateBucketOptions {
-    /// The visibility of the bucket. Public buckets don't require an authorization token to download objects, but still require a valid token for all other operations.
-    // pub public: bool,
-    /// the allowed mime types that this bucket can accept during upload. The default value is null, which allows files with all mime types to be uploaded.
-    pub allowed_mime_type: Option<Vec<String>>,
-    /// The max file size in bytes that can be uploaded to this bucket. The global file size limit takes precedence over this value. No maximum size is set by default.
-    pub file_size_limit: Option<u64>,
+pub struct CreateBucketResponse {
+    pub(crate) name: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DeleteBucketResponse {
+    pub(crate) message: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -206,3 +212,4 @@ impl From<MimeType> for String {
 }
 
 pub const HEADER_API_KEY: &str = "apikey";
+pub const STORAGE_V1: &str = "/storage/v1";
