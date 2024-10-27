@@ -13,8 +13,8 @@ pub struct StorageClient {
     pub api_key: String,
 }
 
-#[derive(Serialize, Deserialize)]
-pub(crate) struct CreateBucket {
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub(crate) struct CreateBucket<'a> {
     /// The ID of the bucket used for making updates or deletion
     pub id: Option<String>,
     /// The visible name of the bucket in your dashboard
@@ -27,17 +27,17 @@ pub(crate) struct CreateBucket {
     pub file_size_limit: Option<u64>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CreateBucketResponse {
     pub(crate) name: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DeleteBucketResponse {
     pub(crate) message: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum MimeType {
     AAC,
