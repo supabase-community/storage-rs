@@ -1,7 +1,4 @@
-use reqwest::{
-    header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE},
-    StatusCode,
-};
+use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 
 use crate::{
     errors::Error,
@@ -33,10 +30,10 @@ impl StorageClient {
 
     /// Create a new storage bucket, returning the name of the bucket on success.
     /// WARNING: Do not use underscores in bucket names or ids
-    pub async fn create_bucket<S: Into<String>>(
+    pub async fn create_bucket(
         &self,
-        name: S,
-        id: Option<S>,
+        name: &str,
+        id: Option<&str>,
         public: bool,
         allowed_mime_types: Option<Vec<String>>,
         file_size_limit: Option<u64>,
@@ -49,10 +46,9 @@ impl StorageClient {
         );
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
 
-        let bucket_name = name.into();
         let payload = CreateBucket {
-            id: Some(id.map(Into::into).unwrap_or_else(|| bucket_name.clone())),
-            name: bucket_name,
+            id: Some(id.map(Into::into).unwrap_or_else(|| name)),
+            name,
             public,
             allowed_mime_types,
             file_size_limit,
@@ -82,7 +78,7 @@ impl StorageClient {
     }
 
     /// Delete the bucket with the given id
-    pub async fn delete_bucket<S: Into<String>>(&self, id: S) -> Result<(), Error> {
+    pub async fn delete_bucket(&self, id: &str) -> Result<(), Error> {
         let mut headers = HeaderMap::new();
         headers.insert(HEADER_API_KEY, HeaderValue::from_str(&self.api_key)?);
         headers.insert(
@@ -92,12 +88,7 @@ impl StorageClient {
 
         let res = self
             .client
-            .delete(format!(
-                "{}{}/bucket/{}",
-                self.project_url,
-                STORAGE_V1,
-                id.into()
-            ))
+            .delete(format!("{}{}/bucket/{}", self.project_url, STORAGE_V1, id))
             .headers(headers)
             .send()
             .await?;

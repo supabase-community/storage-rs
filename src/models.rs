@@ -16,9 +16,9 @@ pub struct StorageClient {
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CreateBucket<'a> {
     /// The ID of the bucket used for making updates or deletion
-    pub id: Option<String>,
+    pub id: Option<&'a str>,
     /// The visible name of the bucket in your dashboard
-    pub name: String,
+    pub name: &'a str,
     /// The visibility of the bucket. Public buckets don't require an authorization token to download objects, but still require a valid token for all other operations.
     pub public: bool,
     /// the allowed mime types that this bucket can accept during upload. The default value is null, which allows files with all mime types to be uploaded.
