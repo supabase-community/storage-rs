@@ -111,3 +111,11 @@ async fn test_list_buckets() {
     client.delete_bucket("test_bucket_for_list").await.unwrap();
 }
 
+#[tokio::test]
+async fn test_get_bucket() {
+    let client = create_test_client().await;
+
+    let bucket = client.get_bucket("example_private_bucket_1").await.unwrap();
+
+    assert!(bucket.name == "example_private_bucket_1")
+}
