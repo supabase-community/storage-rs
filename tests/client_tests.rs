@@ -81,3 +81,33 @@ async fn test_create_bucket_with_options() {
 
     assert_eq!(name, "a-cool-name-for-a-bucket-with-options");
 }
+
+#[tokio::test]
+async fn test_list_buckets() {
+    let client = create_test_client().await;
+
+    // Add a bucket with options
+    client
+        .create_bucket(
+            "test_bucket_for_list",
+            Some("test_bucket_for_list"),
+            false,
+            Some(vec![MimeType::WAV, MimeType::PNG]),
+            Some(0),
+        )
+        .await
+        .unwrap();
+
+    let buckets = client.list_buckets().await.unwrap();
+
+    assert!(
+        buckets
+            .iter()
+            .any(|bucket| bucket.name == "test_bucket_for_list"),
+        "test_bucket_for_list should exist in buckets"
+    );
+
+    // Delete bucket
+    client.delete_bucket("test_bucket_for_list").await.unwrap();
+}
+
