@@ -2,7 +2,10 @@ use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 
 use crate::{
     errors::Error,
-    models::{CreateBucket, CreateBucketResponse, StorageClient, HEADER_API_KEY, STORAGE_V1},
+    models::{
+        Bucket, Buckets, CreateBucket, CreateBucketResponse, MimeType, StorageClient,
+        HEADER_API_KEY, STORAGE_V1,
+    },
 };
 
 impl StorageClient {
@@ -28,14 +31,18 @@ impl StorageClient {
         })
     }
 
-    /// Create a new storage bucket, returning the name of the bucket on success.
+    /// Create a new storage bucket, returning the name **_(not the id)_** of the bucket on success.
+    ///
+    /// Requires your StorageClient to have the following RLS permissions:
+    /// `buckets` table permissions: insert
+    ///
     /// WARNING: Do not use underscores in bucket names or ids
-    pub async fn create_bucket(
+    pub async fn create_bucket<'a>(
         &self,
         name: &str,
         id: Option<&str>,
         public: bool,
-        allowed_mime_types: Option<Vec<String>>,
+        allowed_mime_types: Option<Vec<MimeType<'a>>>,
         file_size_limit: Option<u64>,
     ) -> Result<String, Error> {
         let mut headers = HeaderMap::new();
@@ -46,11 +53,15 @@ impl StorageClient {
         );
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
 
+        // Convert MimeType enums to their string representations
+        let mime_types: Option<Vec<String>> =
+            allowed_mime_types.map(|types| types.iter().map(|mime| mime.to_string()).collect());
+
         let payload = CreateBucket {
             id: Some(id.map(Into::into).unwrap_or_else(|| name)),
             name,
             public,
-            allowed_mime_types,
+            allowed_mime_types: mime_types,
             file_size_limit,
         };
 
@@ -67,12 +78,11 @@ impl StorageClient {
         let res_status = res.status();
         let res_body = res.text().await?;
 
-        let bucket = serde_json::from_str::<CreateBucketResponse>(&res_body).map_err(|_| {
-            Error::StorageError {
+        let bucket: CreateBucketResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
                 status: res_status,
                 message: res_body,
-            }
-        })?;
+            })?;
 
         Ok(bucket.name)
     }
@@ -80,7 +90,6 @@ impl StorageClient {
     /// Delete the bucket with the given id
     pub async fn delete_bucket(&self, id: &str) -> Result<(), Error> {
         let mut headers = HeaderMap::new();
-        headers.insert(HEADER_API_KEY, HeaderValue::from_str(&self.api_key)?);
         headers.insert(
             AUTHORIZATION,
             HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,

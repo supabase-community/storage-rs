@@ -22,10 +22,26 @@ pub(crate) struct CreateBucket<'a> {
     /// The visibility of the bucket. Public buckets don't require an authorization token to download objects, but still require a valid token for all other operations.
     pub public: bool,
     /// the allowed mime types that this bucket can accept during upload. The default value is null, which allows files with all mime types to be uploaded.
+    // pub allowed_mime_types: Option<Vec<&'a str>>,
     pub allowed_mime_types: Option<Vec<String>>,
     /// The max file size in bytes that can be uploaded to this bucket. The global file size limit takes precedence over this value. No maximum size is set by default.
     pub file_size_limit: Option<u64>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Bucket {
+    pub id: String,
+    pub name: String,
+    pub owner: String,
+    pub public: bool,
+    pub file_size_limit: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_mime_types: Option<Vec<String>>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+pub type Buckets = Vec<Bucket>;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CreateBucketResponse {
@@ -39,7 +55,8 @@ pub struct DeleteBucketResponse {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
-pub enum MimeType {
+pub enum MimeType<'a> {
+    Custom(&'a str),
     AAC,
     AbiWord,
     APNG,
@@ -115,8 +132,8 @@ pub enum MimeType {
     SevenZip,
 }
 
-impl MimeType {
-    pub fn as_str(&self) -> &'static str {
+impl MimeType<'_> {
+    pub fn as_str(&self) -> &str {
         match self {
             MimeType::AAC => "audio/aac",
             MimeType::AbiWord => "application/x-abiword",
@@ -195,17 +212,18 @@ impl MimeType {
             MimeType::ThreeGPP => "video/3gpp",
             MimeType::ThreeGPP2 => "video/3gpp2",
             MimeType::SevenZip => "application/x-7z-compressed",
+            MimeType::Custom(mime) => &mime,
         }
     }
 }
 
-impl fmt::Display for MimeType {
+impl fmt::Display for MimeType<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.as_str())
     }
 }
 
-impl From<MimeType> for String {
+impl From<MimeType<'_>> for String {
     fn from(mime: MimeType) -> Self {
         mime.to_string()
     }
