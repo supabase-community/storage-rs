@@ -59,7 +59,11 @@ async fn test_create_bucket_with_options() {
             "a-cool-name-for-a-bucket-with-options",
             None,
             false,
-            Some(vec![MimeType::WAV.into(), MimeType::PNG.into()]),
+            Some(vec![
+                MimeType::WAV,
+                MimeType::PNG,
+                MimeType::Custom("image/*"),
+            ]),
             Some(12431243),
         )
         .await
