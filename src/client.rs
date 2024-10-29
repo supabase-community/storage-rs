@@ -114,4 +114,33 @@ impl StorageClient {
             });
         }
     }
+    /// Get the bucket with the given id
+    pub async fn get_bucket(&self, bucket_id: &str) -> Result<Bucket, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+        headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
+
+        let res = self
+            .client
+            .get(format!(
+                "{}{}/bucket/{}",
+                self.project_url, STORAGE_V1, bucket_id
+            ))
+            .headers(headers)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let bucket: Bucket = serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+            status: res_status,
+            message: res_body,
+        })?;
+
+        Ok(bucket)
+    }
 }

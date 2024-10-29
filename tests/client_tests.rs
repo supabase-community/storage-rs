@@ -65,6 +65,14 @@ async fn test_create_bucket_with_options() {
         .await
         .unwrap();
 
+    // Get the bucket, and make sure the options are present
+    let bucket = client
+        .get_bucket("a-cool-name-for-a-bucket-with-options")
+        .await
+        .unwrap();
+
+    assert!(bucket.allowed_mime_types.is_some() && 12431243 == bucket.file_size_limit);
+
     // Delete bucket
     client
         .delete_bucket("a-cool-name-for-a-bucket-with-options")
