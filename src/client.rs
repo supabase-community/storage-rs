@@ -116,6 +116,13 @@ impl StorageClient {
     }
 
     /// Get the bucket with the given id
+    /// # Example
+    /// ```
+    /// let bucket = client
+    ///     .get_bucket("a-cool-name-for-a-bucket-with-options")
+    ///     .await
+    ///     .unwrap();
+    ///```
     pub async fn get_bucket(&self, bucket_id: &str) -> Result<Bucket, Error> {
         let mut headers = HeaderMap::new();
         headers.insert(
@@ -145,6 +152,11 @@ impl StorageClient {
         Ok(bucket)
     }
 
+    /// Retrieves the details of all Storage buckets within an existing project
+    /// # Example
+    /// ```
+    /// let buckets = client.list_buckets().await.unwrap();
+    /// ```
     pub async fn list_buckets(&self) -> Result<Buckets, Error> {
         let mut headers = HeaderMap::new();
         headers.insert(
