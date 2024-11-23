@@ -378,4 +378,46 @@ impl StorageClient {
             .await
     }
 
+    pub async fn download_file(
+        &self,
+        bucket_id: &str,
+        path: &str,
+        options: Option<DownloadOptions<'_>>,
+    ) -> Result<Vec<u8>, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        let mut renderpath = "object";
+        if let Some(opts) = options {
+            if opts.transform.is_some() {
+                renderpath = "render/image/authenticated"
+            }
+        }
+
+        let res = self
+            .client
+            .get(format!(
+                "{}{}/{}/{}/{}",
+                self.project_url, STORAGE_V1, renderpath, bucket_id, path
+            ))
+            .headers(headers)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.bytes().await?.to_vec();
+
+        if !res_status.is_success() {
+            return Err(Error::StorageError {
+                status: res_status,
+                message: String::from_utf8_lossy(&res_body).to_string(),
+            });
+        }
+
+        Ok(res_body)
+    }
+
 }
