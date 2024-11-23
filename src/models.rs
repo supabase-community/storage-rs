@@ -1,4 +1,4 @@
-use std::fmt;
+use std::{collections::HashMap, fmt, time::Duration};
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -19,6 +19,19 @@ pub(crate) struct CreateBucket<'a> {
     pub id: Option<&'a str>,
     /// The visible name of the bucket in your dashboard
     pub name: &'a str,
+    /// The visibility of the bucket. Public buckets don't require an authorization token to download objects, but still require a valid token for all other operations.
+    pub public: bool,
+    /// the allowed mime types that this bucket can accept during upload. The default value is null, which allows files with all mime types to be uploaded.
+    // pub allowed_mime_types: Option<Vec<&'a str>>,
+    pub allowed_mime_types: Option<Vec<String>>,
+    /// The max file size in bytes that can be uploaded to this bucket. The global file size limit takes precedence over this value. No maximum size is set by default.
+    pub file_size_limit: Option<u64>,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub(crate) struct UpdateBucket<'a> {
+    /// The ID of the bucket used for making updates or deletion
+    pub id: &'a str,
     /// The visibility of the bucket. Public buckets don't require an authorization token to download objects, but still require a valid token for all other operations.
     pub public: bool,
     /// the allowed mime types that this bucket can accept during upload. The default value is null, which allows files with all mime types to be uploaded.

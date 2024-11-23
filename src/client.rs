@@ -1,10 +1,14 @@
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::{
+    header::{HeaderMap, HeaderValue, AUTHORIZATION, CACHE_CONTROL, CONTENT_TYPE},
+    Url,
+};
 
 use crate::{
     errors::Error,
     models::{
-        Bucket, Buckets, CreateBucket, CreateBucketResponse, MimeType, StorageClient,
-        HEADER_API_KEY, STORAGE_V1,
+        Bucket, BucketResponse, Buckets, CreateBucket, CreateBucketResponse, DownloadOptions,
+        FileObject, FileOptions, FileSearchOptions, ListFilesPayload, MimeType, ObjectResponse,
+        StorageClient, UpdateBucket, HEADER_API_KEY, STORAGE_V1,
     },
 };
 
@@ -182,4 +186,57 @@ impl StorageClient {
 
         Ok(buckets)
     }
+
+    /// Updates a Storage bucket
+    ///
+    /// Requires the following RLS permissions:
+    /// `buckets` table: `select` and `update`
+    pub async fn update_bucket<'a>(
+        &self,
+        id: &str,
+        public: bool,
+        allowed_mime_types: Option<Vec<MimeType<'a>>>,
+        file_size_limit: Option<u64>,
+    ) -> Result<String, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(HEADER_API_KEY, HeaderValue::from_str(&self.api_key)?);
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+        headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
+
+        // Convert MimeType enums to their string representations
+        let mime_types: Option<Vec<String>> =
+            allowed_mime_types.map(|types| types.iter().map(|mime| mime.to_string()).collect());
+
+        let payload = UpdateBucket {
+            id,
+            public,
+            allowed_mime_types: mime_types,
+            file_size_limit,
+        };
+
+        let request_body = serde_json::to_string(&payload)?;
+
+        let res = self
+            .client
+            .put(format!("{}{}/bucket/{}", self.project_url, STORAGE_V1, id))
+            .headers(headers)
+            .body(request_body)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let bucket: BucketResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(bucket.message)
+    }
+
 }
