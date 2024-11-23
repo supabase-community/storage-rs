@@ -173,3 +173,27 @@ async fn test_update_bucket() {
     assert!(delete.is_ok());
 }
 
+#[tokio::test]
+async fn test_empty_bucket() {
+    let client = create_test_client().await;
+
+    // Add file to bucket
+    let bytes = "byte array".as_bytes().to_vec();
+
+    // let name = client
+    //     .create_bucket("empty_bucket_test", None, false, None, None)
+    //     .await
+    //     .unwrap();
+    //
+    // println!("{}", name);
+
+    let upload = client
+        .upload_file("empty_bucket_test", bytes, "empty_test", None)
+        .await;
+
+    // Empty the bucket
+    let empty = client.empty_bucket("empty_bucket_test").await.unwrap();
+
+    assert!(empty == "Successfully emptied")
+}
+
