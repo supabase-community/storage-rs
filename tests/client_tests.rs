@@ -1,4 +1,7 @@
-use supabase_storage::models::{MimeType, StorageClient};
+use supabase_storage::models::{
+    Column, DownloadOptions, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
+    TransformOptions,
+};
 use uuid::Uuid;
 
 async fn create_test_client() -> StorageClient {
@@ -123,3 +126,20 @@ async fn test_get_bucket() {
 
     assert!(bucket.name == "example_private_bucket_1")
 }
+// DELETE
+#[tokio::test]
+async fn test_delete_bucket() {
+    let client = create_test_client().await;
+
+    let bucket = client
+        .create_bucket("test_delete_bucket", None, false, None, None)
+        .await
+        .unwrap();
+
+    assert_eq!(bucket, "test_delete_bucket");
+
+    let delete = client.delete_bucket("test_delete_bucket").await;
+
+    assert!(delete.is_ok())
+}
+
