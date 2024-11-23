@@ -70,6 +70,57 @@ pub struct Metadata {
     pub http_status_code: i32,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+pub struct FileSearchOptions<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub offset: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "sortBy")]
+    pub sort_by: Option<SortBy>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub search: Option<&'a str>,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SortBy {
+    pub column: Column,
+    pub order: Order,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum Order {
+    #[default]
+    Asc,
+    Desc,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum Column {
+    #[default]
+    Name,
+    ID,
+    UpdatedAt,
+    CreatedAt,
+    LastAccessedAt,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub(crate) struct ListFilesPayload<'a> {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) limit: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) offset: Option<u32>,
+    #[serde(rename = "sortBy")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) sort_by: Option<SortBy>,
+    pub(crate) prefix: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) search: Option<&'a str>,
+}
 /// Configuration options for file uploads to Supabase Storage
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Upload<'a> {
