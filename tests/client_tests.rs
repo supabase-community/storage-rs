@@ -274,3 +274,23 @@ async fn test_list_files() {
         .unwrap();
 }
 
+#[tokio::test]
+async fn test_download_file() {
+    let client = create_test_client().await;
+
+    let options = DownloadOptions {
+        transform: Some(TransformOptions {
+            width: Some(100),
+            height: Some(300),
+            resize: Some("conver"),
+            format: None,
+            quality: Some(80),
+        }),
+        download: None,
+    };
+
+    client
+        .download_file("list_files", "/folder/aaa.jpg", Some(options))
+        .await
+        .unwrap();
+}
