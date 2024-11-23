@@ -78,7 +78,7 @@ async fn test_create_bucket_with_options() {
         .await
         .unwrap();
 
-    assert!(bucket.allowed_mime_types.is_some() && 12431243 == bucket.file_size_limit);
+    assert!(bucket.allowed_mime_types.is_some() && 12431243 == bucket.file_size_limit.unwrap());
 
     // Delete bucket
     client
@@ -126,6 +126,7 @@ async fn test_get_bucket() {
 
     assert!(bucket.name == "example_private_bucket_1")
 }
+
 // DELETE
 #[tokio::test]
 async fn test_delete_bucket() {
