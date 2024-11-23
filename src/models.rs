@@ -41,6 +41,36 @@ pub(crate) struct UpdateBucket<'a> {
     pub file_size_limit: Option<u64>,
 }
 
+/// Configuration options for file uploads to Supabase Storage
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Upload<'a> {
+    /// The file path, including the file name (format: folder/subfolder/filename.png)
+    /// The bucket must already exist before attempting to upload.
+    pub path: &'a str,
+    /// The body of the file to be stored in the bucket
+    pub file_body: Vec<u8>,
+    /// Optional file configuration settings
+    pub file_options: Option<FileOptions<'a>>,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct FileOptions<'a> {
+    /// The number of seconds the asset is cached in the browser and Supabase CDN
+    /// Sets the Cache-Control: max-age=<seconds> header
+    /// Defaults to 3600 seconds
+    pub cache_control: Option<Duration>,
+    /// The Content-Type header value
+    /// Required if using a fileBody that is neither Blob, File, nor FormData
+    /// Defaults to "text/plain;charset=UTF-8"
+    pub content_type: Option<&'a str>,
+    /// Enables or disables duplex streaming for reading and writing data in the same stream
+    pub duplex: Option<&'a str>,
+    /// When true, the file is overwritten if it exists
+    /// When false, an error is thrown if the object already exists
+    /// Defaults to false
+    pub upsert: bool,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Bucket {
     pub id: String,

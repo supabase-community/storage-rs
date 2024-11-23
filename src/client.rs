@@ -270,4 +270,112 @@ impl StorageClient {
         Ok(bucket.message)
     }
 
+    async fn upload_or_update_file(
+        &self,
+        bucket_id: &str,
+        data: Vec<u8>,
+        path: &str,
+        update: bool,
+        options: Option<FileOptions<'_>>,
+    ) -> Result<ObjectResponse, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        // Set optional headers
+        if let Some(opts) = options {
+            if let Some(cache_control) = opts.cache_control {
+                headers.insert(
+                    CACHE_CONTROL,
+                    HeaderValue::from_str(&format!("{}", cache_control.as_secs()))?,
+                );
+            }
+
+            if let Some(content_type) = opts.content_type {
+                headers.insert(
+                    CONTENT_TYPE,
+                    HeaderValue::from_str(&format!("{}", content_type))?,
+                );
+            }
+
+            if opts.upsert {
+                headers.insert(
+                    "x-upsert",
+                    HeaderValue::from_str(&format!("{}", opts.upsert))?,
+                );
+            }
+        }
+
+        let res = match update {
+            true => {
+                self.client
+                    .put(format!(
+                        "{}{}/object/{}/{}",
+                        self.project_url, STORAGE_V1, bucket_id, path
+                    ))
+                    .headers(headers)
+                    .body(data)
+                    .send()
+                    .await?
+            }
+            false => {
+                self.client
+                    .post(format!(
+                        "{}{}/object/{}/{}",
+                        self.project_url, STORAGE_V1, bucket_id, path
+                    ))
+                    .headers(headers)
+                    .body(data)
+                    .send()
+                    .await?
+            }
+        };
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let object: ObjectResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(object)
+    }
+
+    pub async fn replace_file(
+        &self,
+        bucket_id: &str,
+        data: Vec<u8>,
+        path: &str,
+        options: Option<FileOptions<'_>>,
+    ) -> Result<ObjectResponse, Error> {
+        self.upload_or_update_file(bucket_id, data, path, true, options)
+            .await
+    }
+
+    pub async fn update_file(
+        &self,
+        bucket_id: &str,
+        data: Vec<u8>,
+        path: &str,
+        options: Option<FileOptions<'_>>,
+    ) -> Result<ObjectResponse, Error> {
+        self.upload_or_update_file(bucket_id, data, path, true, options)
+            .await
+    }
+
+    pub async fn upload_file(
+        &self,
+        bucket_id: &str,
+        data: Vec<u8>,
+        path: &str,
+        options: Option<FileOptions<'_>>,
+    ) -> Result<ObjectResponse, Error> {
+        self.upload_or_update_file(bucket_id, data, path, false, options)
+            .await
+    }
+
 }
