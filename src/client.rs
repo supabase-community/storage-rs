@@ -420,4 +420,32 @@ impl StorageClient {
         Ok(res_body)
     }
 
+    pub async fn delete_file(&self, bucket_id: &str, path: &str) -> Result<BucketResponse, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        let res = self
+            .client
+            .delete(format!(
+                "{}{}/object/{}/{}",
+                self.project_url, STORAGE_V1, bucket_id, path
+            ))
+            .headers(headers)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let message: BucketResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(message)
+    }
 }
