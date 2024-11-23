@@ -448,4 +448,51 @@ impl StorageClient {
 
         Ok(message)
     }
+
+    pub async fn list_files(
+        &self,
+        bucket_id: &str,
+        path: &str,
+        options: Option<FileSearchOptions<'_>>,
+    ) -> Result<Vec<FileObject>, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        let options = options.unwrap_or_default();
+        let payload = ListFilesPayload {
+            limit: options.limit,
+            offset: options.offset,
+            sort_by: options.sort_by,
+            prefix: path,
+            search: options.search,
+        };
+
+        let body = serde_json::to_string(&payload).unwrap();
+
+        let res = self
+            .client
+            .post(format!(
+                "{}{}/object/list/{}",
+                self.project_url, STORAGE_V1, bucket_id,
+            ))
+            .headers(headers)
+            .body(body)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let files: Vec<FileObject> =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(files)
+    }
 }
