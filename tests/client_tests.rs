@@ -252,3 +252,25 @@ async fn test_update_file() {
         .unwrap();
 }
 
+#[tokio::test]
+async fn test_list_files() {
+    let client = create_test_client().await;
+
+    let options = FileSearchOptions {
+        limit: Some(5),
+        offset: Some(1),
+        sort_by: Some(SortBy {
+            column: Column::Name,
+            order: Order::Asc,
+        }),
+        search: None,
+    };
+
+    let b = client.get_bucket("list_files").await.unwrap();
+
+    client
+        .list_files(&b.id, "folder/", Some(options))
+        .await
+        .unwrap();
+}
+
