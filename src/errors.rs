@@ -15,4 +15,6 @@ pub enum Error {
     InvalidHeaderValue(#[from] reqwest::header::InvalidHeaderValue),
     #[error("Failed to send request")]
     RequestError(#[from] reqwest::Error),
+    #[error("ParseError: {message}")]
+    UrlParseError { message: String },
 }
