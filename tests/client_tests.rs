@@ -143,3 +143,33 @@ async fn test_delete_bucket() {
     assert!(delete.is_ok())
 }
 
+#[tokio::test]
+async fn test_update_bucket() {
+    let client = create_test_client().await;
+
+    client
+        .create_bucket(
+            "test_update_bucket",
+            None,
+            false, // make bucket private
+            Some(vec![MimeType::WAV, MimeType::PNG, MimeType::Custom("")]),
+            Some(12431243),
+        )
+        .await
+        .unwrap();
+
+    client
+        .update_bucket("test_update_bucket", true, None, None) // make bucket public
+        .await
+        .unwrap();
+
+    let bucket = client.get_bucket("test_update_bucket").await.unwrap();
+
+    assert!(bucket.public);
+
+    // Delete bucket
+    let delete = client.delete_bucket("test_update_bucket").await;
+
+    assert!(delete.is_ok());
+}
+
