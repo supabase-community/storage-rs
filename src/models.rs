@@ -121,6 +121,23 @@ pub(crate) struct ListFilesPayload<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) search: Option<&'a str>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(bound(deserialize = "'de: 'a"))]
+pub struct DownloadOptions<'a> {
+    pub transform: Option<TransformOptions<'a>>,
+    pub download: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct TransformOptions<'a> {
+    pub width: Option<u64>,
+    pub height: Option<u64>,
+    pub resize: Option<&'a str>,
+    pub format: Option<&'a str>,
+    pub quality: Option<u8>,
+}
+
 /// Configuration options for file uploads to Supabase Storage
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Upload<'a> {
@@ -157,11 +174,20 @@ pub struct Bucket {
     pub name: String,
     pub owner: String,
     pub public: bool,
-    pub file_size_limit: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file_size_limit: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_mime_types: Option<Vec<String>>,
     pub created_at: String,
     pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ObjectResponse {
+    #[serde(rename = "Id")]
+    pub id: String,
+    #[serde(rename = "Key")]
+    pub key: String,
 }
 
 pub type Buckets = Vec<Bucket>;
@@ -172,7 +198,7 @@ pub struct CreateBucketResponse {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct DeleteBucketResponse {
+pub struct BucketResponse {
     pub(crate) message: String,
 }
 
