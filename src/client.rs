@@ -239,4 +239,35 @@ impl StorageClient {
         Ok(bucket.message)
     }
 
+    /// Empty a bucket
+    pub async fn empty_bucket(&self, id: &str) -> Result<String, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(HEADER_API_KEY, HeaderValue::from_str(&self.api_key)?); // maybe delete
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        let res = self
+            .client
+            .post(format!(
+                "{}{}/bucket/{}/empty",
+                self.project_url, STORAGE_V1, id
+            ))
+            .headers(headers)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let bucket: BucketResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(bucket.message)
+    }
+
 }
