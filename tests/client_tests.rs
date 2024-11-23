@@ -215,3 +215,40 @@ async fn test_upload_file() {
         .unwrap();
 }
 
+#[tokio::test]
+async fn test_update_file() {
+    let client = create_test_client().await;
+
+    let bytes = "updated byte array".as_bytes().to_vec();
+    let new_bytes = "updated byte array".as_bytes().to_vec();
+
+    let _upload = client
+        .upload_file("upload_tests", bytes.clone(), "tests/Update", None)
+        .await
+        .unwrap();
+
+    let file = client
+        .download_file("upload_tests", "tests/Update", None)
+        .await
+        .unwrap();
+
+    assert_eq!(file, bytes);
+
+    let _update = client
+        .update_file("upload_tests", new_bytes.clone(), "/tests/Update", None)
+        .await
+        .unwrap();
+
+    let file = client
+        .download_file("upload_tests", "tests/Update", None)
+        .await
+        .unwrap();
+
+    assert_eq!(file, new_bytes);
+
+    client
+        .delete_file("upload_tests", "tests/Update")
+        .await
+        .unwrap();
+}
+
