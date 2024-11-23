@@ -41,6 +41,35 @@ pub(crate) struct UpdateBucket<'a> {
     pub file_size_limit: Option<u64>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileObject {
+    pub name: String,
+    pub id: String,
+    pub updated_at: String,
+    pub created_at: String,
+    pub last_accessed_at: String,
+    pub metadata: Metadata,
+    pub bucket_id: Option<String>,
+    pub owner: Option<String>,
+    pub buckets: Option<serde_json::Value>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Metadata {
+    #[serde(rename = "eTag")]
+    pub etag: String,
+    pub size: i32,
+    pub mimetype: String,
+    #[serde(rename = "cacheControl")]
+    pub cache_control: String,
+    #[serde(rename = "lastModified")]
+    pub last_modified: String,
+    #[serde(rename = "contentLength")]
+    pub content_length: i32,
+    #[serde(rename = "httpStatusCode")]
+    pub http_status_code: i32,
+}
+
 /// Configuration options for file uploads to Supabase Storage
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Upload<'a> {
