@@ -496,3 +496,47 @@ impl StorageClient {
         Ok(files)
     }
 }
+pub fn build_url_with_options(url_str: &str, options: &DownloadOptions) -> Result<String, Error> {
+    let mut url = Url::parse(url_str).map_err(|_| Error::UrlParseError {
+        message: "Failed to parse Url".to_string(),
+    })?;
+
+    let mut query_pairs = url.query_pairs_mut();
+
+    if let Some(transform) = &options.transform {
+        if let Some(height) = transform.height {
+            query_pairs.append_pair("height", &height.to_string());
+        }
+
+        if let Some(width) = transform.width {
+            query_pairs.append_pair("width", &width.to_string());
+        }
+
+        if let Some(format) = &transform.format {
+            query_pairs.append_pair("format", format);
+        }
+
+        if let Some(quality) = transform.quality {
+            query_pairs.append_pair("quality", &quality.to_string());
+        }
+
+        if let Some(resize) = transform.resize {
+            match resize {
+                "conver" | "contain" | "fill" => {
+                    query_pairs.append_pair("resize", resize);
+                }
+                _ => {} // Invalid resize option, ignore
+            }
+        }
+    }
+
+    // Use more descriptive parameter name
+    if options.download.unwrap_or(false) {
+        query_pairs.append_pair("download", "true");
+    }
+
+    // Release the mutable borrow before generating the final URL
+    drop(query_pairs);
+
+    Ok(url.to_string())
+}
