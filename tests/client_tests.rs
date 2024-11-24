@@ -295,3 +295,20 @@ async fn test_download_file() {
         .await
         .unwrap();
 }
+
+#[tokio::test]
+async fn test_copy_file() {
+    let client = create_test_client().await;
+
+    let key = client
+        .copy_file("list_files", None, "3.txt", Some("folder/4.txt"), true)
+        .await
+        .unwrap();
+
+    assert!(key == "list_files/folder/4.txt");
+
+    client
+        .delete_file("list_files", "folder/4.txt")
+        .await
+        .unwrap();
+}

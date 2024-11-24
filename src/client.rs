@@ -6,9 +6,10 @@ use reqwest::{
 use crate::{
     errors::Error,
     models::{
-        Bucket, BucketResponse, Buckets, CreateBucket, CreateBucketResponse, DownloadOptions,
-        FileObject, FileOptions, FileSearchOptions, ListFilesPayload, MimeType, ObjectResponse,
-        StorageClient, UpdateBucket, HEADER_API_KEY, STORAGE_V1,
+        Bucket, BucketResponse, Buckets, CopyFilePayload, CopyFileResponse, CreateBucket,
+        CreateBucketResponse, DownloadOptions, FileObject, FileOptions, FileSearchOptions,
+        ListFilesPayload, MimeType, ObjectResponse, StorageClient, UpdateBucket, HEADER_API_KEY,
+        STORAGE_V1,
     },
 };
 
@@ -494,6 +495,51 @@ impl StorageClient {
             })?;
 
         Ok(files)
+    }
+
+    pub async fn copy_file(
+        &self,
+        from_bucket: &str,
+        to_bucket: Option<&str>,
+        from_path: &str,
+        to_path: Option<&str>,
+        copy_metadata: bool,
+    ) -> Result<String, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        let payload = CopyFilePayload {
+            bucket_id: from_bucket,
+            source_key: from_path,
+            destination_bucket: to_bucket.unwrap_or(from_bucket),
+            destination_key: to_path.unwrap_or(from_path),
+            copy_metadata,
+        };
+
+        let body = serde_json::to_string(&payload)?;
+
+        let res = self
+            .client
+            .post(format!("{}{}/object/copy", self.project_url, STORAGE_V1,))
+            .headers(headers)
+            .body(body)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let value: CopyFileResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(value.key)
     }
 }
 pub fn build_url_with_options(url_str: &str, options: &DownloadOptions) -> Result<String, Error> {

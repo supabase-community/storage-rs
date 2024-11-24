@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt, time::Duration};
+use std::{fmt, time::Duration};
 
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -106,6 +106,26 @@ pub enum Column {
     UpdatedAt,
     CreatedAt,
     LastAccessedAt,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub(crate) struct CopyFilePayload<'a> {
+    #[serde(rename = "bucketId")]
+    pub(crate) bucket_id: &'a str,
+    #[serde(rename = "sourceKey")]
+    pub(crate) source_key: &'a str,
+    #[serde(rename = "destinationBucket")]
+    pub(crate) destination_bucket: &'a str,
+    #[serde(rename = "destinationKey")]
+    pub(crate) destination_key: &'a str,
+    #[serde(rename = "copyMetadata")]
+    pub(crate) copy_metadata: bool,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub(crate) struct CopyFileResponse {
+    #[serde(rename = "Key")]
+    pub key: String,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
