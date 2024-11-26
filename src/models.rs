@@ -154,6 +154,12 @@ pub(crate) struct CopyFileResponse {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct UploadToSignedUrlResponse {
+    #[serde(rename = "Key")]
+    pub key: String,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct ListFilesPayload<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) limit: Option<u32>,

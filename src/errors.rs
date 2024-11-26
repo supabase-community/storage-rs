@@ -17,4 +17,6 @@ pub enum Error {
     RequestError(#[from] reqwest::Error),
     #[error("ParseError: {message}")]
     UrlParseError { message: String },
+    #[error("InvalidToken: {message}")]
+    InvalidToken { message: String },
 }

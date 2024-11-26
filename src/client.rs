@@ -10,7 +10,7 @@ use crate::{
         CreateBucketResponse, CreateMultipleSignedUrlsPayload, CreateSignedUrlPayload,
         DownloadOptions, FileObject, FileOptions, FileSearchOptions, ListFilesPayload, MimeType,
         ObjectResponse, SignedUploadsUrlResponse, SignedUrlResponse, StorageClient, UpdateBucket,
-        HEADER_API_KEY, STORAGE_V1,
+        UploadToSignedUrlResponse, HEADER_API_KEY, STORAGE_V1,
     },
 };
 
@@ -659,6 +659,67 @@ impl StorageClient {
             })?;
 
         Ok(response.url)
+    }
+
+    pub async fn upload_to_signed_url(
+        &self,
+        bucket_id: &str,
+        token: &str,
+        data: Vec<u8>,
+        path: &str,
+        options: Option<FileOptions<'_>>,
+    ) -> Result<UploadToSignedUrlResponse, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        // Set optional headers
+        if let Some(opts) = options {
+            if let Some(cache_control) = opts.cache_control {
+                headers.insert(
+                    CACHE_CONTROL,
+                    HeaderValue::from_str(&format!("{}", cache_control.as_secs()))?,
+                );
+            }
+
+            if let Some(content_type) = opts.content_type {
+                headers.insert(
+                    CONTENT_TYPE,
+                    HeaderValue::from_str(&format!("{}", content_type))?,
+                );
+            }
+
+            if opts.upsert {
+                headers.insert(
+                    "x-upsert",
+                    HeaderValue::from_str(&format!("{}", opts.upsert))?,
+                );
+            }
+        }
+
+        let res = self
+            .client
+            .put(format!(
+                "{}{}/object/upload/sign/{}/{}?token={}",
+                self.project_url, STORAGE_V1, bucket_id, path, token
+            ))
+            .headers(headers)
+            .body(data)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let response: UploadToSignedUrlResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(response)
     }
 }
 pub fn build_url_with_options(url_str: &str, options: &DownloadOptions) -> Result<String, Error> {
