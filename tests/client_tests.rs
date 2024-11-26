@@ -323,4 +323,14 @@ async fn test_create_signed_url() {
         .unwrap();
 }
 
+#[tokio::test]
+async fn test_create_multiple_signed_urls() {
+    let client = create_test_client().await;
+
+    let urls = client
+        .create_multiple_signed_urls("list_files", vec!["1.txt", "2.txt", "3.txt"], 12431234)
+        .await
+        .unwrap();
+
+    assert!(urls.len() >= 3)
 }
