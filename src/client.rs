@@ -721,7 +721,30 @@ impl StorageClient {
 
         Ok(response)
     }
+
+    pub async fn get_public_url(
+        &self,
+        bucket_id: &str,
+        path: &str,
+        options: Option<DownloadOptions<'_>>,
+    ) -> Result<String, Error> {
+        let renderpath = match &options {
+            Some(opts) if opts.transform.is_some() => "render/image",
+            _ => "object",
+        };
+
+        let url_str = format!(
+            "{}{STORAGE_V1}/{renderpath}/public/{bucket_id}/{path}",
+            self.project_url
+        );
+
+        match options {
+            Some(opts) => build_url_with_options(&url_str, &opts),
+            None => Ok(url_str),
+        }
+    }
 }
+
 pub fn build_url_with_options(url_str: &str, options: &DownloadOptions) -> Result<String, Error> {
     let mut url = Url::parse(url_str).map_err(|_| Error::UrlParseError {
         message: "Failed to parse Url".to_string(),
