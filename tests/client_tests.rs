@@ -1,6 +1,9 @@
-use supabase_storage::models::{
-    Column, DownloadOptions, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
-    TransformOptions,
+use supabase_storage::{
+    client::extract_token,
+    models::{
+        Column, DownloadOptions, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
+        TransformOptions,
+    },
 };
 use uuid::Uuid;
 
@@ -181,13 +184,6 @@ async fn test_empty_bucket() {
     // Add file to bucket
     let bytes = "byte array".as_bytes().to_vec();
 
-    // let name = client
-    //     .create_bucket("empty_bucket_test", None, false, None, None)
-    //     .await
-    //     .unwrap();
-    //
-    // println!("{}", name);
-
     let upload = client
         .upload_file("empty_bucket_test", bytes, "empty_test", None)
         .await;
@@ -212,6 +208,30 @@ async fn test_upload_file() {
 
     client
         .delete_file("upload_tests", "tests/Upload")
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn test_upload_to_signed_url() {
+    let client = create_test_client().await;
+
+    let bytes = "byte array".as_bytes().to_vec();
+
+    let url = client
+        .create_signed_upload_url("upload_tests", "tests/signed_upload")
+        .await
+        .unwrap();
+
+    let token = extract_token(&url).unwrap();
+
+    client
+        .upload_to_signed_url("upload_tests", token, bytes, "tests/signed_upload", None)
+        .await
+        .unwrap();
+
+    client
+        .delete_file("upload_tests", "tests/signed_upload")
         .await
         .unwrap();
 }

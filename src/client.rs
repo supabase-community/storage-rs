@@ -766,3 +766,13 @@ pub fn build_url_with_options(url_str: &str, options: &DownloadOptions) -> Resul
 
     Ok(url.to_string())
 }
+
+pub fn extract_token(url: &str) -> Result<&str, Error> {
+    url.split('?')
+        .nth(1)
+        .and_then(|query| query.split('&').find(|param| param.starts_with("token=")))
+        .and_then(|token_param| token_param.strip_prefix("token="))
+        .ok_or_else(|| Error::InvalidToken {
+            message: "No token found in URL".to_string(),
+        })
+}
