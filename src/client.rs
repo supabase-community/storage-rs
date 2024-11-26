@@ -9,7 +9,8 @@ use crate::{
         Bucket, BucketResponse, Buckets, CopyFilePayload, CopyFileResponse, CreateBucket,
         CreateBucketResponse, CreateMultipleSignedUrlsPayload, CreateSignedUrlPayload,
         DownloadOptions, FileObject, FileOptions, FileSearchOptions, ListFilesPayload, MimeType,
-        ObjectResponse, SignedUrlResponse, StorageClient, UpdateBucket, HEADER_API_KEY, STORAGE_V1,
+        ObjectResponse, SignedUploadsUrlResponse, SignedUrlResponse, StorageClient, UpdateBucket,
+        HEADER_API_KEY, STORAGE_V1,
     },
 };
 
@@ -581,6 +582,7 @@ impl StorageClient {
 
         Ok(signed_url_response.signed_url)
     }
+
     pub async fn create_multiple_signed_urls(
         &self,
         bucket_id: &str,
@@ -624,6 +626,39 @@ impl StorageClient {
             .collect();
 
         Ok(signed_urls)
+    }
+
+    pub async fn create_signed_upload_url(
+        &self,
+        bucket_id: &str,
+        path: &str,
+    ) -> Result<String, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        let res = self
+            .client
+            .post(format!(
+                "{}{}/object/upload/sign/{}/{}",
+                self.project_url, STORAGE_V1, bucket_id, path
+            ))
+            .headers(headers)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let response: SignedUploadsUrlResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(response.url)
     }
 }
 pub fn build_url_with_options(url_str: &str, options: &DownloadOptions) -> Result<String, Error> {

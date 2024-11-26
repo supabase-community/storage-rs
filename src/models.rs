@@ -129,6 +129,11 @@ pub struct SignedUrlResponse {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SignedUploadsUrlResponse {
+    pub url: String,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CopyFilePayload<'a> {
     #[serde(rename = "bucketId")]
     pub(crate) bucket_id: &'a str,

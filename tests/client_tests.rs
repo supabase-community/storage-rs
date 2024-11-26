@@ -324,6 +324,16 @@ async fn test_create_signed_url() {
 }
 
 #[tokio::test]
+async fn test_create_signed_upload_url() {
+    let client = create_test_client().await;
+
+    client
+        .create_signed_upload_url("list_files", "42.txt")
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
 async fn test_create_multiple_signed_urls() {
     let client = create_test_client().await;
 
