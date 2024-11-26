@@ -7,9 +7,9 @@ use crate::{
     errors::Error,
     models::{
         Bucket, BucketResponse, Buckets, CopyFilePayload, CopyFileResponse, CreateBucket,
-        CreateBucketResponse, DownloadOptions, FileObject, FileOptions, FileSearchOptions,
-        ListFilesPayload, MimeType, ObjectResponse, StorageClient, UpdateBucket, HEADER_API_KEY,
-        STORAGE_V1,
+        CreateBucketResponse, CreateSignedUrlPayload, DownloadOptions, FileObject, FileOptions,
+        FileSearchOptions, ListFilesPayload, MimeType, ObjectResponse, SignedUrlResponse,
+        StorageClient, UpdateBucket, HEADER_API_KEY, STORAGE_V1,
     },
 };
 
@@ -540,6 +540,45 @@ impl StorageClient {
             })?;
 
         Ok(value.key)
+    }
+    pub async fn create_signed_url(
+        &self,
+        bucket_id: &str,
+        path: &str,
+        expires_in: u64,
+    ) -> Result<String, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        let payload = CreateSignedUrlPayload { expires_in };
+
+        let body = serde_json::to_string(&payload)?;
+
+        let res = self
+            .client
+            .post(format!(
+                "{}{}/object/sign/{}/{}",
+                self.project_url, STORAGE_V1, bucket_id, path
+            ))
+            .headers(headers)
+            .body(body)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let signed_url_response: SignedUrlResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(signed_url_response.signed_url)
     }
 }
 pub fn build_url_with_options(url_str: &str, options: &DownloadOptions) -> Result<String, Error> {

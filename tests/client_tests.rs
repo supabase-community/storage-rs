@@ -312,3 +312,15 @@ async fn test_copy_file() {
         .await
         .unwrap();
 }
+
+#[tokio::test]
+async fn test_create_signed_url() {
+    let client = create_test_client().await;
+
+    let url = client
+        .create_signed_url("list_files", "3.txt", 12431234)
+        .await
+        .unwrap();
+
+    println!("{url}");
+}

@@ -109,6 +109,18 @@ pub enum Column {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub(crate) struct CreateSignedUrlPayload {
+    #[serde(rename = "expiresIn")]
+    pub(crate) expires_in: u64,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct SignedUrlResponse {
+    #[serde(rename = "signedURL")]
+    pub signed_url: String,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CopyFilePayload<'a> {
     #[serde(rename = "bucketId")]
     pub(crate) bucket_id: &'a str,
