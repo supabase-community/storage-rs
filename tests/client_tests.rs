@@ -317,10 +317,10 @@ async fn test_copy_file() {
 async fn test_create_signed_url() {
     let client = create_test_client().await;
 
-    let url = client
+    client
         .create_signed_url("list_files", "3.txt", 12431234)
         .await
         .unwrap();
+}
 
-    println!("{url}");
 }
