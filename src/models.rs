@@ -115,6 +115,14 @@ pub(crate) struct CreateSignedUrlPayload {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub(crate) struct CreateMultipleSignedUrlsPayload<'a> {
+    #[serde(rename = "expiresIn")]
+    pub(crate) expires_in: u64,
+    #[serde(borrow)]
+    pub(crate) paths: Vec<&'a str>,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SignedUrlResponse {
     #[serde(rename = "signedURL")]
     pub signed_url: String,
