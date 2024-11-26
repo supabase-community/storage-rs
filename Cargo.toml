@@ -1,5 +1,5 @@
 [package]
-name = "supabase-storage"
+name = "supabase-storage-rs"
 authors = ["Eric Biggs"]
 description = "Supabase storage implementation following the official client libraries."
 readme = "README.md"
