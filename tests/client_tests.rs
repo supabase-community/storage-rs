@@ -216,15 +216,19 @@ async fn test_upload_to_signed_url() {
 
     let bytes = "byte array".as_bytes().to_vec();
 
-    let url = client
+    let upload = client
         .create_signed_upload_url("upload_tests", "tests/signed_upload")
         .await
         .unwrap();
 
-    let token = extract_token(&url).unwrap();
-
     client
-        .upload_to_signed_url("upload_tests", token, bytes, "tests/signed_upload", None)
+        .upload_to_signed_url(
+            "upload_tests",
+            &upload.token,
+            bytes,
+            "tests/signed_upload",
+            None,
+        )
         .await
         .unwrap();
 

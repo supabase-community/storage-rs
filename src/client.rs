@@ -632,7 +632,7 @@ impl StorageClient {
         &self,
         bucket_id: &str,
         path: &str,
-    ) -> Result<String, Error> {
+    ) -> Result<SignedUploadUrlResponse, Error> {
         let mut headers = HeaderMap::new();
         headers.insert(
             AUTHORIZATION,
@@ -658,7 +658,7 @@ impl StorageClient {
                 message: res_body,
             })?;
 
-        Ok(response.url)
+        Ok(response)
     }
 
     pub async fn upload_to_signed_url(
