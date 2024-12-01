@@ -162,14 +162,29 @@ pub struct UploadToSignedUrlResponse {
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct ListFilesPayload<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// The number of files you want to be returned
     pub(crate) limit: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// The starting position
     pub(crate) offset: Option<u32>,
     #[serde(rename = "sortBy")]
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// The column to sort by. Can be any column inside a FileObject.
     pub(crate) sort_by: Option<SortBy>,
+    /// Filters objects that start with this exact string. For example,
+    ///   with prefix "uploads/2024/", it will match:
+    ///   - uploads/2024/image1.jpg
+    ///   - uploads/2024/january/photo.png
+    ///   but not:
+    ///   - uploads/2023/image1.jpg
+    ///   - documents/2024/file.pdf
     pub(crate) prefix: &'a str,
     #[serde(skip_serializing_if = "Option::is_none")]
+    ///  Performs a full-text search across object names. For example,
+    ///   with search "photo", it will match:
+    ///   - family-photo-2024.jpg
+    ///   - uploads/photo1.png
+    ///   - photos/vacation/beach.jpg
     pub(crate) search: Option<&'a str>,
 }
 
