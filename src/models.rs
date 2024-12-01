@@ -73,13 +73,21 @@ pub struct Metadata {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct FileSearchOptions<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// The number of files you want to be returned
     pub limit: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    /// The starting position
     pub offset: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "sortBy")]
+    /// The column to sort by. Can be any column inside a FileObject
     pub sort_by: Option<SortBy>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    ///  Performs a full-text search across object names. For example,
+    ///   with search "photo", it will match:
+    ///   - family-photo-2024.jpg
+    ///   - uploads/photo1.png
+    ///   - photos/vacation/beach.jpg
     pub search: Option<&'a str>,
 }
 
