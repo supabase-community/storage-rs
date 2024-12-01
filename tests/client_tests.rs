@@ -1,4 +1,4 @@
-use supabase_storage::{
+use supabase_storage_rs::{
     client::extract_token,
     models::{
         Column, DownloadOptions, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
@@ -60,7 +60,6 @@ async fn test_create_bucket_with_options() {
     let client = create_test_client().await;
 
     let name = client
-        // NOTE: Intentionally leaving the ID blank will use the name as the id
         .create_bucket(
             "a-cool-name-for-a-bucket-with-options",
             None,
