@@ -9,7 +9,7 @@ use crate::{
         Bucket, BucketResponse, Buckets, CopyFilePayload, CopyFileResponse, CreateBucket,
         CreateBucketResponse, CreateMultipleSignedUrlsPayload, CreateSignedUrlPayload,
         DownloadOptions, FileObject, FileOptions, FileSearchOptions, ListFilesPayload, MimeType,
-        ObjectResponse, SignedUploadsUrlResponse, SignedUrlResponse, StorageClient, UpdateBucket,
+        ObjectResponse, SignedUploadUrlResponse, SignedUrlResponse, StorageClient, UpdateBucket,
         UploadToSignedUrlResponse, HEADER_API_KEY, STORAGE_V1,
     },
 };
@@ -652,7 +652,7 @@ impl StorageClient {
         let res_status = res.status();
         let res_body = res.text().await?;
 
-        let response: SignedUploadsUrlResponse =
+        let response: SignedUploadUrlResponse =
             serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
                 status: res_status,
                 message: res_body,

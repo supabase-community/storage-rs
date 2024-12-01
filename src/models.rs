@@ -137,7 +137,7 @@ pub struct SignedUrlResponse {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub struct SignedUploadsUrlResponse {
+pub struct SignedUploadUrlResponse {
     pub url: String,
 }
 
