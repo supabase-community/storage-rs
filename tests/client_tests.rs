@@ -38,7 +38,6 @@ async fn test_create_bucket() {
     // Create new bucket with UUID for id instead of name
     let bucket_id = Uuid::now_v7().to_string();
     let new_name = client
-        // NOTE: Intentionally leaving the ID blank will use the name as the id
         .create_bucket(
             "a-totally-different-cool-name-for-a-bucket",
             Some(&bucket_id),
@@ -183,7 +182,7 @@ async fn test_empty_bucket() {
     // Add file to bucket
     let bytes = "byte array".as_bytes().to_vec();
 
-    let upload = client
+    let _upload = client
         .upload_file("empty_bucket_test", bytes, "empty_test", None)
         .await;
 
