@@ -139,6 +139,7 @@ pub struct SignedUrlResponse {
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SignedUploadUrlResponse {
     pub url: String,
+    pub token: String,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
