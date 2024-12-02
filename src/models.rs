@@ -136,16 +136,18 @@ pub(crate) struct CreateMultipleSignedUrlsPayload<'a> {
     pub(crate) paths: Vec<&'a str>,
 }
 
+/// Response containing a time-limited URL (without hostname) for performing a signed download
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SignedUrlResponse {
     #[serde(rename = "signedURL")]
-    /// A pre-signed URL that grants temporary access to the object
+    /// A pre-signed URL (without the hostname) that grants temporary access to the object
     ///
     /// This URL includes authentication parameters and will expire after the
     /// duration specified in the request.
     pub signed_url: String,
 }
 
+/// Response containing a time-limited URL (without hostname) for performing a signed upload
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SignedUploadUrlResponse {
     /// The url, without the hostname
@@ -188,6 +190,7 @@ pub struct UploadToSignedUrlResponse {
     pub key: String,
 }
 
+/// Payload for listing files with optional filtering and sorting
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct ListFilesPayload<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -204,7 +207,8 @@ pub(crate) struct ListFilesPayload<'a> {
     ///   with prefix "uploads/2024/", it will match:
     ///   - uploads/2024/image1.jpg
     ///   - uploads/2024/january/photo.png
-    ///   but not:
+    ///
+    ///   will not match:
     ///   - uploads/2023/image1.jpg
     ///   - documents/2024/file.pdf
     pub(crate) prefix: &'a str,
@@ -224,6 +228,20 @@ pub struct DownloadOptions<'a> {
     pub download: Option<bool>,
 }
 
+/// Options for image transformation operations
+///
+/// Provides configuration for resizing, reformatting, and quality adjustments of images
+///
+/// # Example
+/// ```
+/// let options = TransformOptions {
+///     width: Some(800),
+///     height: Some(600),
+///     resize: Some("cover"),
+///     format: Some("webp"),
+///     quality: Some(80),
+/// };
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TransformOptions<'a> {
     /// The width of the image in pixels
