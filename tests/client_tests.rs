@@ -1,9 +1,6 @@
-use supabase_storage_rs::{
-    client::extract_token,
-    models::{
-        Column, DownloadOptions, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
-        TransformOptions,
-    },
+use supabase_storage_rs::models::{
+    Column, DownloadOptions, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
+    TransformOptions,
 };
 use uuid::Uuid;
 
