@@ -119,40 +119,58 @@ pub enum Column {
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CreateSignedUrlPayload {
     #[serde(rename = "expiresIn")]
+    /// The number of seconds until the signed URL expires
+    /// After this duration, the URL will no longer grant access to the object
     pub(crate) expires_in: u64,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CreateMultipleSignedUrlsPayload<'a> {
     #[serde(rename = "expiresIn")]
+    /// The number of seconds until the signed URL expires
+    ///
+    /// After this duration, the URL will no longer grant access to the object
     pub(crate) expires_in: u64,
     #[serde(borrow)]
+    /// A `Vec` of file paths, including the file name (format: folder/subfolder/filename.png)
     pub(crate) paths: Vec<&'a str>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SignedUrlResponse {
     #[serde(rename = "signedURL")]
+    /// A pre-signed URL that grants temporary access to the object
+    ///
+    /// This URL includes authentication parameters and will expire after the
+    /// duration specified in the request.
     pub signed_url: String,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SignedUploadUrlResponse {
+    /// The url, without the hostname
+    /// (Example: /object/upload/sign/upload_tests/tests/signed_upload?token=eyJh...)
     pub url: String,
+    /// Authentication token that validates the upload request
     pub token: String,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CopyFilePayload<'a> {
     #[serde(rename = "bucketId")]
+    /// The source bucket identifier containing the file to copy
     pub(crate) bucket_id: &'a str,
     #[serde(rename = "sourceKey")]
+    /// The key (path) of the file to copy within the source bucket
     pub(crate) source_key: &'a str,
     #[serde(rename = "destinationBucket")]
+    /// The target bucket where the file will be copied to
     pub(crate) destination_bucket: &'a str,
     #[serde(rename = "destinationKey")]
+    /// The key (path) where the file will be copied to in the destination bucket
     pub(crate) destination_key: &'a str,
     #[serde(rename = "copyMetadata")]
+    /// Whether to copy the metadata (like content-type, custom headers) from the source file
     pub(crate) copy_metadata: bool,
 }
 
