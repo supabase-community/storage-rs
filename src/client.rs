@@ -16,6 +16,11 @@ use crate::{
 
 impl StorageClient {
     /// Create a new StorageClient from a project_url and api_key
+    /// You can find your project url and keys at `https://supabase.com/dashboard/project/YOUR_PROJECT_ID/settings/api`
+    /// # Example
+    /// ```
+    /// let client = StorageClient::new(project_url, api_key, jwt_secret).unwrap();
+    /// ```
     pub fn new(project_url: String, api_key: String) -> Self {
         Self {
             client: reqwest::Client::new(),
@@ -26,6 +31,13 @@ impl StorageClient {
 
     /// Create a new StorageClient from the "SUPABASE_URL" and "SUPABASE_API_KEY" environment
     /// variables.
+    ///
+    /// Create a new StorageClient from a project_url and api_key
+    /// You can find your project url and keys at `https://supabase.com/dashboard/project/YOUR_PROJECT_ID/settings/api`
+    /// # Example
+    /// ```
+    /// let client = StorageClient::new_from_env().unwrap();
+    /// ```
     pub async fn new_from_env() -> Result<StorageClient, Error> {
         let project_url = std::env::var("SUPABASE_URL")?;
         let api_key = std::env::var("SUPABASE_API_KEY")?;
@@ -43,6 +55,15 @@ impl StorageClient {
     /// `buckets` table permissions: insert
     ///
     /// WARNING: Do not use underscores in bucket names or ids
+    ///
+    /// # Example
+    ///
+    ///```rust
+    /// let name = client
+    ///     .create_bucket("a-cool-name-for-a-bucket", None, false, None, None)
+    ///     .await
+    ///     .unwrap();
+    ///```
     pub async fn create_bucket<'a>(
         &self,
         name: &str,
@@ -94,6 +115,11 @@ impl StorageClient {
     }
 
     /// Delete the bucket with the given id
+    ///
+    /// # Example
+    /// ```rust
+    /// client.delete_bucket("a-cool-name-for-a-bucket").await.unwrap();
+    /// ```
     pub async fn delete_bucket(&self, id: &str) -> Result<(), Error> {
         let mut headers = HeaderMap::new();
         headers.insert(
@@ -193,6 +219,11 @@ impl StorageClient {
     ///
     /// Requires the following RLS permissions:
     /// `buckets` table: `select` and `update`
+    ///
+    /// # Example
+    /// ```rust
+    /// client.update_bucket("bucket_id", true, None, Some(100_000_000)).await.unwrap();
+    /// ```
     pub async fn update_bucket<'a>(
         &self,
         id: &str,
@@ -241,7 +272,11 @@ impl StorageClient {
         Ok(bucket.message)
     }
 
-    /// Empty a bucket
+    /// Empty a bucket with a given id
+    /// # Example
+    /// ```rust
+    /// let empty = client.empty_bucket("empty_bucket_test").await.unwrap();
+    /// ```
     pub async fn empty_bucket(&self, id: &str) -> Result<String, Error> {
         let mut headers = HeaderMap::new();
         headers.insert(HEADER_API_KEY, HeaderValue::from_str(&self.api_key)?); // maybe delete
@@ -347,6 +382,12 @@ impl StorageClient {
         Ok(object)
     }
 
+    /// Replaces the file at the designated bucket and path with the given `Vec<u8>`
+    ///
+    /// # Example
+    /// ```rust
+    /// let object = client.replace_file("bucket_id", file, "path/to/file.txt", Some(options)).await.unwrap();
+    /// ```
     pub async fn replace_file(
         &self,
         bucket_id: &str,
@@ -358,6 +399,14 @@ impl StorageClient {
             .await
     }
 
+    /// Updates the file at the designated bucket and path with the given `Vec<u8>`
+    ///
+    /// This is identical to `replace_file`
+    ///
+    /// # Example
+    /// ```rust
+    /// let object = client.update_file("bucket_id", file, "path/to/file.txt", Some(options)).await.unwrap();
+    /// ```
     pub async fn update_file(
         &self,
         bucket_id: &str,
@@ -369,6 +418,12 @@ impl StorageClient {
             .await
     }
 
+    /// Replaces the file at the designated bucket and path with the given `Vec<u8>`
+    ///
+    /// # Example
+    /// ```rust
+    /// let object = client.upload_file("bucket_id", file, "path/to/file.txt", Some(options)).await.unwrap();
+    /// ```
     pub async fn upload_file(
         &self,
         bucket_id: &str,
@@ -380,6 +435,12 @@ impl StorageClient {
             .await
     }
 
+    // TODO: Incorporate download options
+    /// Download the designated file
+    /// # Example
+    /// ```rust
+    /// let file = client.download_file("bucket_id", file, "path/to/file.txt", Some(options)).await.unwrap();
+    /// ```
     pub async fn download_file(
         &self,
         bucket_id: &str,
@@ -422,6 +483,14 @@ impl StorageClient {
         Ok(res_body)
     }
 
+    /// Delete the designated file, returning a confirmation message on success
+    ///
+    ///```rust
+    /// let message = client
+    ///     .delete_file("upload_tests", "tests/signed_upload")
+    ///     .await
+    ///     .unwrap();
+    ///```
     pub async fn delete_file(&self, bucket_id: &str, path: &str) -> Result<BucketResponse, Error> {
         let mut headers = HeaderMap::new();
         headers.insert(
@@ -451,6 +520,26 @@ impl StorageClient {
         Ok(message)
     }
 
+    /// List all files that match your search criteria
+    ///
+    /// # Example
+    /// ```rust
+    ///
+    /// let options = FileSearchOptions {
+    ///     limit: Some(5), // List up to five files
+    ///     offset: Some(1), // Skip the first file
+    ///     sort_by: Some(SortBy {
+    ///         column: Column::Name, // Sort by name
+    ///         order: Order::Asc, // In Ascending order
+    ///     }),
+    ///     search: None, // With no specific search string
+    /// };
+    ///
+    /// client
+    ///     .list_files("bucket_id", "folder/", Some(options))
+    ///     .await
+    ///     .unwrap();
+    /// ```
     pub async fn list_files(
         &self,
         bucket_id: &str,
@@ -498,6 +587,22 @@ impl StorageClient {
         Ok(files)
     }
 
+    /// Copy a file from one path to another
+    /// # Example
+    ///
+    /// ```rust
+    /// // Copies `3.txt` into `folder/4.txt` within the same bucket, including metadata
+    /// let key = client
+    ///     .copy_file("from_bucket", None, "3.txt", Some("folder/4.txt"), true)
+    ///     .await
+    ///     .unwrap();
+    ///
+    /// // Copies `a.txt` into `folder/b.txt` in a different bucket, including metadata
+    /// let key = client
+    ///     .copy_file("from_bucket", "to_bucket", "a.txt", Some("folder/b.txt"), true)
+    ///     .await
+    ///     .unwrap();
+    /// ```
     pub async fn copy_file(
         &self,
         from_bucket: &str,
@@ -543,6 +648,16 @@ impl StorageClient {
         Ok(value.key)
     }
 
+    /// Create a signed download url, returns a signed_url on success
+    ///
+    /// # Example
+    /// ```rust
+    ///
+    /// client
+    ///    .create_signed_url("list_files", "3.txt", 12431234)
+    ///    .await
+    ///    .unwrap();
+    /// ```
     pub async fn create_signed_url(
         &self,
         bucket_id: &str,
@@ -583,6 +698,16 @@ impl StorageClient {
         Ok(signed_url_response.signed_url)
     }
 
+    /// Create multiple signed download urls, returns a `Vec` of signed_urls on success
+    ///
+    /// # Example
+    /// ```rust
+    ///
+    /// let urls = client
+    ///    .create_multiple_signed_urls("bucket_id", vec!["1.txt", "2.txt", "3.txt"], 100_000)
+    ///    .await
+    ///    .unwrap();
+    /// ```
     pub async fn create_multiple_signed_urls(
         &self,
         bucket_id: &str,
@@ -628,6 +753,14 @@ impl StorageClient {
         Ok(signed_urls)
     }
 
+    /// Create a signed upload url,
+    ///
+    /// Returns the `url` (without hostname) and authorization `token` on success
+    ///
+    /// # Example
+    /// ```rust
+    /// let signed = client.create_signed_upload_url("list_files", "42.txt").await.unwrap();
+    /// ```
     pub async fn create_signed_upload_url(
         &self,
         bucket_id: &str,
