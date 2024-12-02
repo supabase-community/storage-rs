@@ -177,12 +177,14 @@ pub(crate) struct CopyFilePayload<'a> {
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CopyFileResponse {
     #[serde(rename = "Key")]
+    /// The key (path) where the file will be copied to in the destination bucket
     pub key: String,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct UploadToSignedUrlResponse {
     #[serde(rename = "Key")]
+    /// The key (path) where the file will be stored in the destination bucket
     pub key: String,
 }
 
