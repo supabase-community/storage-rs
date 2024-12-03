@@ -363,3 +363,13 @@ async fn test_create_multiple_signed_urls() {
 
     assert!(urls.len() >= 3)
 }
+
+#[tokio::test]
+async fn test_get_public_url() {
+    let client = create_test_client().await;
+
+    client
+        .get_public_url("list_files", "1.txt", None)
+        .await
+        .unwrap();
+}
