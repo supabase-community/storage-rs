@@ -316,7 +316,7 @@ let url = client
 ## Contributions
 
 Contributors are always welcome. I only ask that you add or update tests to cover your changes. Until this crate reaches 1.0.0 we're in the "move fast and break things" phase. Don't concern yourself with elegance.
-!*/
+*/
 
 pub mod client;
 pub mod errors;
