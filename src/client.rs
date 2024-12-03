@@ -794,6 +794,15 @@ impl StorageClient {
         Ok(response)
     }
 
+    /// Upload a file to a signed url
+    ///
+    /// Returns the `url` (without hostname) and authorization `token` upon success
+    ///
+    /// # Example
+    /// ```rust
+    /// let object = client
+    ///     .upload_to_signed_url("bucket_id", "upload_token", file, "path/to/file.txt", None).await.unwrap();
+    ///```
     pub async fn upload_to_signed_url(
         &self,
         bucket_id: &str,
@@ -855,6 +864,34 @@ impl StorageClient {
         Ok(response)
     }
 
+    /// Returns a public URL for accessing an asset in a storage bucket
+    ///
+    /// # Arguments
+    ///
+    /// * `bucket_id` - Unique identifier for the storage bucket
+    /// * `path` - Path to the file within the bucket, formatted as 'folder/subfolder/filename.ext'
+    /// * `options` - Optional parameters for customizing the download URL:
+    ///   - Image transformations (uses `/render/image` endpoint)
+    ///   - Download behavior configurations
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// // Basic usage
+    /// let url = client.get_public_url("photos", "vacations/beach.jpg", None).await?;
+    ///
+    /// // With image transformation
+    /// let options = DownloadOptions {
+    ///     transform: Some(Transform { width: 300, ..Default::default() }),
+    ///     ..Default::default()
+    /// };
+    /// let url = client.get_public_url("photos", "vacations/beach.jpg", Some(options)).await?;
+    /// ```
+    ///
+    /// # Note
+    ///
+    /// The URL can also be manually constructed by combining:
+    /// `{project_url}/storage/v1/object/public/{bucket_id}/{path}`
     pub async fn get_public_url(
         &self,
         bucket_id: &str,
