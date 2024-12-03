@@ -18,13 +18,13 @@ async fn test_create_client_from_env() {
 async fn test_create_bucket() {
     let client = create_test_client().await;
 
-    let name = client
+    let bucket_name = client
         // NOTE: Intentionally leaving the ID blank will use the name as the id
         .create_bucket("a-cool-name-for-a-bucket", None, false, None, None)
         .await
         .unwrap();
 
-    assert_eq!(name, "a-cool-name-for-a-bucket");
+    assert_eq!(bucket_name, "a-cool-name-for-a-bucket");
 
     // Delete first bucket
     client
