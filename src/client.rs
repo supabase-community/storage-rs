@@ -418,7 +418,7 @@ impl StorageClient {
             .await
     }
 
-    /// Replaces the file at the designated bucket and path with the given `Vec<u8>`
+    /// Uploads a file at the designated bucket and path with the given `Vec<u8>`
     ///
     /// # Example
     /// ```rust
