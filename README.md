@@ -2,7 +2,7 @@
 
 ![Crates.io License](https://img.shields.io/crates/l/supabase-storage-rs?style=for-the-badge)
 [![Crates.io Version](https://img.shields.io/crates/v/supabase-storage-rs?style=for-the-badge)](https://crates.io/crates/supabase-storage-rs)
-[![docs.rs](https://img.shields.io/docsrs/supabase-storage-rs?style=for-the-badge)](https://docs.rs/supabase-storage/latest/supabase_storage/index.html) 
+[![docs.rs](https://img.shields.io/docsrs/supabase-storage-rs?style=for-the-badge)](https://docs.rs/supabase-storage-rs/latest/supabase_storage-rs/index.html) 
 
 This is a Rust implementation of the [supabase storage client](https://supabase.com/docs/reference/javascript/storage-createbucket). The goal is to have feature parity and an easy-to-use API.
 
