@@ -543,7 +543,7 @@ impl StorageClient {
     pub async fn list_files(
         &self,
         bucket_id: &str,
-        path: &str,
+        path: Option<&str>,
         options: Option<FileSearchOptions<'_>>,
     ) -> Result<Vec<FileObject>, Error> {
         let mut headers = HeaderMap::new();
@@ -558,7 +558,7 @@ impl StorageClient {
             limit: options.limit,
             offset: options.offset,
             sort_by: options.sort_by,
-            prefix: path,
+            prefix: path.unwrap_or(""),
             search: options.search,
         };
 
