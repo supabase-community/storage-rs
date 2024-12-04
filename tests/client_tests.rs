@@ -315,19 +315,21 @@ async fn test_list_files() {
 async fn test_download_file() {
     let client = create_test_client().await;
 
-    let options = DownloadOptions {
-        transform: Some(TransformOptions {
-            width: Some(100),
-            height: Some(300),
-            resize: Some("conver"),
-            format: None,
-            quality: Some(80),
-        }),
-        download: None,
-    };
+    // NOTE: Disabled due to requiring a Pro plan for transformations
+    //
+    // let options = DownloadOptions {
+    //     transform: Some(TransformOptions {
+    //         width: Some(100),
+    //         height: Some(300),
+    //         resize: Some("conver"),
+    //         format: None,
+    //         quality: Some(80),
+    //     }),
+    //     download: None,
+    // };
 
     client
-        .download_file("list_files", "/folder/aaa.jpg", Some(options))
+        .download_file("list_files", "/folder/aaa.jpg", None)
         .await
         .unwrap();
 }
