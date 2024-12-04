@@ -286,12 +286,29 @@ async fn test_list_files() {
         search: None,
     };
 
-    let b = client.get_bucket("list_files").await.unwrap();
-
-    client
-        .list_files(&b.id, "folder/", Some(options))
+    // Contains folders and files
+    let root_files = client
+        .list_files("list_files", None, Some(options.clone()))
         .await
         .unwrap();
+
+    assert!(root_files.len() >= 3);
+
+    // Contains empty folders
+    let folder_of_folders = client
+        .list_files("list_files", Some("folder_of_folders"), None)
+        .await
+        .unwrap();
+
+    assert!(folder_of_folders.len() > 0);
+
+    // Contains nothing
+    let empty_folder = client
+        .list_files("list_files", Some("inner_folder"), None)
+        .await
+        .unwrap();
+
+    assert!(empty_folder.len() == 0);
 }
 
 #[tokio::test]
