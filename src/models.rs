@@ -177,6 +177,22 @@ pub(crate) struct CopyFilePayload<'a> {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub(crate) struct MoveFilePayload<'a> {
+    #[serde(rename = "bucketId")]
+    /// The source bucket identifier containing the file to copy
+    pub(crate) bucket_id: &'a str,
+    #[serde(rename = "sourceKey")]
+    /// The key (path) of the file to copy within the source bucket
+    pub(crate) source_key: &'a str,
+    #[serde(rename = "destinationBucket")]
+    /// The target bucket where the file will be copied to
+    pub(crate) destination_bucket: &'a str,
+    #[serde(rename = "destinationKey")]
+    /// The key (path) where the file will be copied to in the destination bucket
+    pub(crate) destination_key: &'a str,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CopyFileResponse {
     #[serde(rename = "Key")]
     /// The key (path) where the file will be copied to in the destination bucket

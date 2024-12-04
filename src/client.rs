@@ -9,8 +9,8 @@ use crate::{
         Bucket, BucketResponse, Buckets, CopyFilePayload, CopyFileResponse, CreateBucket,
         CreateBucketResponse, CreateMultipleSignedUrlsPayload, CreateSignedUrlPayload,
         DownloadOptions, FileObject, FileOptions, FileSearchOptions, ListFilesPayload, MimeType,
-        ObjectResponse, SignedUploadUrlResponse, SignedUrlResponse, StorageClient, UpdateBucket,
-        UploadToSignedUrlResponse, HEADER_API_KEY, STORAGE_V1,
+        MoveFilePayload, ObjectResponse, SignedUploadUrlResponse, SignedUrlResponse, StorageClient,
+        UpdateBucket, UploadToSignedUrlResponse, HEADER_API_KEY, STORAGE_V1,
     },
 };
 
@@ -912,6 +912,65 @@ impl StorageClient {
             Some(opts) => build_url_with_options(&url_str, &opts),
             None => Ok(url_str),
         }
+    }
+
+    /// Move a file from one path to another
+    /// # Example
+    ///
+    /// ```rust
+    /// // Copies `3.txt` into `folder/4.txt` within the same bucket
+    /// let key = client
+    ///     .move_file("from_bucket", None, "3.txt", Some("folder/4.txt"))
+    ///     .await
+    ///     .unwrap();
+    ///
+    /// // Copies `a.txt` into `folder/b.txt` in a different bucket
+    /// let key = client
+    ///     .move_file("from_bucket", "to_bucket", "a.txt", Some("folder/b.txt"))
+    ///     .await
+    ///     .unwrap();
+    /// ```
+    pub async fn move_file(
+        &self,
+        from_bucket: &str,
+        to_bucket: Option<&str>,
+        from_path: &str,
+        to_path: &str,
+    ) -> Result<String, Error> {
+        let mut headers = HeaderMap::new();
+        headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+        );
+
+        let payload = MoveFilePayload {
+            bucket_id: from_bucket,
+            source_key: from_path,
+            destination_bucket: to_bucket.unwrap_or(from_bucket),
+            destination_key: to_path,
+        };
+
+        let body = serde_json::to_string(&payload)?;
+
+        let res = self
+            .client
+            .post(format!("{}{}/object/move", self.project_url, STORAGE_V1,))
+            .headers(headers)
+            .body(body)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        let value: BucketResponse =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(value.message)
     }
 }
 
