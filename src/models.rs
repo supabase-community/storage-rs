@@ -44,13 +44,21 @@ pub(crate) struct UpdateBucket<'a> {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileObject {
     pub name: String,
-    pub id: String,
-    pub updated_at: String,
-    pub created_at: String,
-    pub last_accessed_at: String,
-    pub metadata: Metadata,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_accessed_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<Metadata>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub bucket_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub buckets: Option<serde_json::Value>,
 }
 
@@ -116,6 +124,7 @@ pub enum Column {
     LastAccessedAt,
 }
 
+// TODO: Forgot to add transform
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub(crate) struct CreateSignedUrlPayload {
     #[serde(rename = "expiresIn")]
