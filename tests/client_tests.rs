@@ -373,3 +373,24 @@ async fn test_get_public_url() {
         .await
         .unwrap();
 }
+
+#[tokio::test]
+async fn test_move_file() {
+    let client = create_test_client().await;
+
+    // Move file
+    let moved = client
+        .move_file("list_files", None, "1.txt", "moved.txt")
+        .await
+        .unwrap();
+
+    assert_eq!(moved, "Successfully moved");
+
+    // Put it back
+    let moved_back = client
+        .move_file("list_files", None, "moved.txt", "1.txt")
+        .await
+        .unwrap();
+
+    assert_eq!(moved_back, "Successfully moved");
+}
