@@ -522,6 +522,9 @@ impl StorageClient {
 
     /// List all files that match your search criteria
     ///
+    /// The returned `Vec<FileObject>` will contain both files and folders. Folders can be
+    /// identified as having a populated name field, without any other fields.
+    ///
     /// # Example
     /// ```rust
     ///
