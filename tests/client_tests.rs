@@ -1,6 +1,5 @@
 use supabase_storage_rs::models::{
-    Column, DownloadOptions, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
-    TransformOptions,
+    Column, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
 };
 use uuid::Uuid;
 

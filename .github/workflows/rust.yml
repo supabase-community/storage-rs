@@ -1,0 +1,44 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: test-environment
+
+    strategy:
+      matrix:
+        toolchain:
+          - stable
+          # - beta
+          # - nightly
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
+      SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+      DEMO_EMAIL: ${{ secrets.DEMO_EMAIL}}
+      DEMO_PHONE: ${{ secrets.DEMO_PHONE}}
+      DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD}}
+      DEMO_DOMAIN: ${{ secrets.DEMO_DOMAIN}}
+      DEMO_INVITE: ${{ secrets.DEMO_INVITE}}
+
+    steps:
+    - uses: actions/checkout@v4
+    - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+    - name: Build
+      run: cargo build --verbose
+    - name: Run default tests
+      run: cargo test --verbose -- --nocapture --test-threads=1
+    - name: Run rustls tests
+      run: cargo test --verbose --features use-rustls -- --nocapture --test-threads=1
+
+
