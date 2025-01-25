@@ -4,6 +4,7 @@ use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 /// Supabase Storage Client
+#[derive(Clone)]
 pub struct StorageClient {
     pub client: Client,
     /// REST endpoint for querying and managing your database
