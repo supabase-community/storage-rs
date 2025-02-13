@@ -1,6 +1,6 @@
 use std::{fmt, time::Duration};
 
-use reqwest::Client;
+use reqwest::{header::HeaderMap, Client};
 use serde::{Deserialize, Serialize};
 
 /// Supabase Storage Client
@@ -12,6 +12,7 @@ pub struct StorageClient {
     pub project_url: String,
     /// WARN: The `service role` key has the ability to bypass Row Level Security. Never share it publicly.
     pub api_key: String,
+    pub(crate) headers: HeaderMap,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]

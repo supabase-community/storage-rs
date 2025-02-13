@@ -1,5 +1,5 @@
 use reqwest::{
-    header::{HeaderMap, HeaderValue, AUTHORIZATION, CACHE_CONTROL, CONTENT_TYPE},
+    header::{HeaderMap, HeaderValue, IntoHeaderName, AUTHORIZATION, CACHE_CONTROL, CONTENT_TYPE},
     Url,
 };
 
@@ -26,6 +26,7 @@ impl StorageClient {
             client: reqwest::Client::new(),
             project_url,
             api_key,
+            headers: HeaderMap::new(),
         }
     }
 
@@ -46,7 +47,20 @@ impl StorageClient {
             client: reqwest::Client::new(),
             project_url,
             api_key,
+            headers: HeaderMap::new(),
         })
+    }
+
+    pub fn insert_header(
+        mut self,
+        header_name: impl IntoHeaderName,
+        header_value: impl AsRef<str>,
+    ) -> Self {
+        self.headers.insert(
+            header_name,
+            HeaderValue::from_str(header_value.as_ref()).expect("Invalid header value."),
+        );
+        self
     }
 
     /// Create a new storage bucket, returning the name **_(not the id)_** of the bucket on success.
@@ -72,12 +86,14 @@ impl StorageClient {
         allowed_mime_types: Option<Vec<MimeType<'a>>>,
         file_size_limit: Option<u64>,
     ) -> Result<String, Error> {
-        let mut headers = HeaderMap::new();
+        let mut headers = self.headers.clone();
         headers.insert(HEADER_API_KEY, HeaderValue::from_str(&self.api_key)?);
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
 
         // Convert MimeType enums to their string representations
@@ -121,11 +137,13 @@ impl StorageClient {
     /// client.delete_bucket("a-cool-name-for-a-bucket").await.unwrap();
     /// ```
     pub async fn delete_bucket(&self, id: &str) -> Result<(), Error> {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let res = self
             .client
@@ -156,11 +174,13 @@ impl StorageClient {
     ///     .unwrap();
     ///```
     pub async fn get_bucket(&self, bucket_id: &str) -> Result<Bucket, Error> {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
 
         let res = self
@@ -190,11 +210,13 @@ impl StorageClient {
     /// let buckets = client.list_buckets().await.unwrap();
     /// ```
     pub async fn list_buckets(&self) -> Result<Buckets, Error> {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
 
         let res = self
@@ -231,12 +253,14 @@ impl StorageClient {
         allowed_mime_types: Option<Vec<MimeType<'a>>>,
         file_size_limit: Option<u64>,
     ) -> Result<String, Error> {
-        let mut headers = HeaderMap::new();
+        let mut headers = self.headers.clone();
         headers.insert(HEADER_API_KEY, HeaderValue::from_str(&self.api_key)?);
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
 
         // Convert MimeType enums to their string representations
@@ -278,12 +302,14 @@ impl StorageClient {
     /// let empty = client.empty_bucket("empty_bucket_test").await.unwrap();
     /// ```
     pub async fn empty_bucket(&self, id: &str) -> Result<String, Error> {
-        let mut headers = HeaderMap::new();
+        let mut headers = self.headers.clone();
         headers.insert(HEADER_API_KEY, HeaderValue::from_str(&self.api_key)?); // maybe delete
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let res = self
             .client
@@ -315,11 +341,13 @@ impl StorageClient {
         update: bool,
         options: Option<FileOptions<'_>>,
     ) -> Result<ObjectResponse, Error> {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         // Set optional headers
         if let Some(opts) = options {
@@ -447,11 +475,13 @@ impl StorageClient {
         path: &str,
         options: Option<DownloadOptions<'_>>,
     ) -> Result<Vec<u8>, Error> {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let mut renderpath = "object";
         if let Some(opts) = options {
@@ -492,11 +522,13 @@ impl StorageClient {
     ///     .unwrap();
     ///```
     pub async fn delete_file(&self, bucket_id: &str, path: &str) -> Result<BucketResponse, Error> {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let res = self
             .client
@@ -549,12 +581,14 @@ impl StorageClient {
         path: Option<&str>,
         options: Option<FileSearchOptions<'_>>,
     ) -> Result<Vec<FileObject>, Error> {
-        let mut headers = HeaderMap::new();
+        let mut headers = self.headers.clone();
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let options = options.unwrap_or_default();
         let payload = ListFilesPayload {
@@ -614,12 +648,14 @@ impl StorageClient {
         to_path: Option<&str>,
         copy_metadata: bool,
     ) -> Result<String, Error> {
-        let mut headers = HeaderMap::new();
+        let mut headers = self.headers.clone();
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let payload = CopyFilePayload {
             bucket_id: from_bucket,
@@ -667,12 +703,14 @@ impl StorageClient {
         path: &str,
         expires_in: u64,
     ) -> Result<String, Error> {
-        let mut headers = HeaderMap::new();
+        let mut headers = self.headers.clone();
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let payload = CreateSignedUrlPayload { expires_in };
 
@@ -717,12 +755,14 @@ impl StorageClient {
         paths: Vec<&str>,
         expires_in: u64,
     ) -> Result<Vec<String>, Error> {
-        let mut headers = HeaderMap::new();
+        let mut headers = self.headers.clone();
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let payload = CreateMultipleSignedUrlsPayload { expires_in, paths };
 
@@ -769,11 +809,13 @@ impl StorageClient {
         bucket_id: &str,
         path: &str,
     ) -> Result<SignedUploadUrlResponse, Error> {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let res = self
             .client
@@ -814,11 +856,13 @@ impl StorageClient {
         path: &str,
         options: Option<FileOptions<'_>>,
     ) -> Result<UploadToSignedUrlResponse, Error> {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         // Set optional headers
         if let Some(opts) = options {
@@ -940,12 +984,14 @@ impl StorageClient {
         from_path: &str,
         to_path: &str,
     ) -> Result<String, Error> {
-        let mut headers = HeaderMap::new();
+        let mut headers = self.headers.clone();
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
-        );
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
 
         let payload = MoveFilePayload {
             bucket_id: from_bucket,
