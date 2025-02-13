@@ -1,5 +1,5 @@
 use reqwest::{
-    header::{HeaderMap, HeaderValue, AUTHORIZATION, CACHE_CONTROL, CONTENT_TYPE},
+    header::{HeaderMap, HeaderValue, IntoHeaderName, AUTHORIZATION, CACHE_CONTROL, CONTENT_TYPE},
     Url,
 };
 
@@ -49,6 +49,18 @@ impl StorageClient {
             api_key,
             headers: HeaderMap::new(),
         })
+    }
+
+    pub fn insert_header(
+        mut self,
+        header_name: impl IntoHeaderName,
+        header_value: impl AsRef<str>,
+    ) -> Self {
+        self.headers.insert(
+            header_name,
+            HeaderValue::from_str(header_value.as_ref()).expect("Invalid header value."),
+        );
+        self
     }
 
     /// Create a new storage bucket, returning the name **_(not the id)_** of the bucket on success.
