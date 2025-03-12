@@ -3,7 +3,7 @@ name = "supabase-storage-rs"
 authors = ["Eric Biggs"]
 description = "Supabase storage implementation following the official client libraries."
 readme = "README.md"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 license = "MIT OR Apache-2.0"
 keywords = ["supabase", "supabase-storage", "storage"]
@@ -16,7 +16,9 @@ default = ["reqwest/default-tls"]
 use-rustls = ["reqwest/rustls-tls"]
 
 [dependencies]
-reqwest = { version = "0.12.9", default-features = false, features = ["multipart"] }
+reqwest = { version = "0.12.9", default-features = false, features = [
+    "multipart",
+] }
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
 thiserror = "2.0.3"
