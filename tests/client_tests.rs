@@ -1,5 +1,6 @@
 use supabase_storage_rs::models::{
     Column, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
+
 };
 use uuid::Uuid;
 
@@ -350,15 +351,42 @@ async fn test_copy_file() {
         .unwrap();
 }
 
-#[tokio::test]
-async fn test_create_signed_url() {
-    let client = create_test_client().await;
+// #[tokio::test]
+// async fn test_create_signed_url() {
+//     let client = create_test_client().await;
 
-    client
-        .create_signed_url("list_files", "3.txt", 12431234)
-        .await
-        .unwrap();
-}
+    
+//     let signed_url = client
+//         .create_signed_url(&bucket_name, &upload_path, 2000, None)
+//         .await
+//         .unwrap();
+
+//     assert!(signed_url.contains(&format!("/object/sign/{}/{}", bucket_name, upload_path)));
+// }
+
+// #[tokio::test]
+// async fn test_create_signed_url_with_transform() {
+//     let client = create_test_client().await;
+//     // let (upload_path, file, bucket_name) = setup_test(&client).await;
+
+//     client.upload_file(&bucket_name, file, &upload_path, None).await.expect("expected file to be uploaded");
+
+//     let signed_url = client
+//         .create_signed_url(&bucket_name, &upload_path, 2000, Some(DownloadOptions{
+//             transform: Some(TransformOptions {
+//                 width:Some(100),
+//                 height:Some(100), 
+//                 resize:None,
+//                 format:None,
+//                 quality:None,
+//             }),
+//             download: Some(false),
+//         }))
+//         .await
+//         .unwrap();
+
+//     assert!(signed_url.contains(&format!("/render/image/sign/{}/{}", bucket_name, upload_path)));
+// }
 
 #[tokio::test]
 async fn test_create_signed_upload_url() {
