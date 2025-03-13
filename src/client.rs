@@ -741,7 +741,7 @@ impl StorageClient {
             })?;
 
         Ok(format!(
-            "{}{}/{}",
+            "{}{}{}",
             self.project_url, STORAGE_V1, signed_url_response.signed_url
         ))
     }
