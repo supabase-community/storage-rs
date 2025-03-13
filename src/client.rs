@@ -702,6 +702,7 @@ impl StorageClient {
         bucket_id: &str,
         path: &str,
         expires_in: u64,
+        options: Option<DownloadOptions<'_>>,
     ) -> Result<String, Error> {
         let mut headers = self.headers.clone();
         headers.insert(CONTENT_TYPE, HeaderValue::from_str("application/json")?);
@@ -712,7 +713,10 @@ impl StorageClient {
             );
         }
 
-        let payload = CreateSignedUrlPayload { expires_in };
+        let payload = CreateSignedUrlPayload {
+            expires_in,
+            transform: options.and_then(|opts| opts.transform),
+        };
 
         let body = serde_json::to_string(&payload)?;
 
@@ -736,7 +740,10 @@ impl StorageClient {
                 message: res_body,
             })?;
 
-        Ok(signed_url_response.signed_url)
+        Ok(format!(
+            "{}{}/{}",
+            self.project_url, STORAGE_V1, signed_url_response.signed_url
+        ))
     }
 
     /// Create multiple signed download urls, returns a `Vec` of signed_urls on success

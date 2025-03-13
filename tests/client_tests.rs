@@ -1,5 +1,6 @@
 use supabase_storage_rs::models::{
-    Column, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
+    Column, DownloadOptions, FileSearchOptions, MimeType, Order, SortBy, StorageClient,
+    TransformOptions,
 };
 use uuid::Uuid;
 
@@ -354,10 +355,34 @@ async fn test_copy_file() {
 async fn test_create_signed_url() {
     let client = create_test_client().await;
 
-    client
-        .create_signed_url("list_files", "3.txt", 12431234)
+    let signed_url = client
+        .create_signed_url("list_files", "1.txt", 2000, None)
         .await
         .unwrap();
+
+    assert!(signed_url.contains(&format!("/object/sign/{}/{}", "list_files", "1.txt")));
+}
+
+#[tokio::test]
+async fn test_create_signed_url_with_transform() {
+    let client = create_test_client().await;
+
+    let download_options: Option<DownloadOptions> = None;
+    // #commented out due to requiring a Pro plan for transformations
+    // download_options = Some(DownloadOptions {
+    //     transform: Some(TransformOptions {
+    //         width: Some(100),
+    //         height: Some(100),
+    //         resize: None,
+    //         format: None,
+    //         quality: None,
+    //     }),
+    //     download: Some(false),
+    // });
+    client
+        .create_signed_url("list_files", "/folder/aaa.jpg", 2000, download_options)
+        .await
+        .expect("expected signed url to be created");
 }
 
 #[tokio::test]

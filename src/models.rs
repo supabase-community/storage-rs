@@ -127,12 +127,14 @@ pub enum Column {
 }
 
 // TODO: Forgot to add transform
-#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
-pub(crate) struct CreateSignedUrlPayload {
+#[derive(Default, Debug, Clone, Serialize, PartialEq)]
+pub(crate) struct CreateSignedUrlPayload<'a> {
     #[serde(rename = "expiresIn")]
     /// The number of seconds until the signed URL expires
     /// After this duration, the URL will no longer grant access to the object
     pub(crate) expires_in: u64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub(crate) transform: Option<TransformOptions<'a>>,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -272,22 +274,27 @@ pub struct DownloadOptions<'a> {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TransformOptions<'a> {
     /// The width of the image in pixels
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub width: Option<u64>,
     /// The height of the image in pixels
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub height: Option<u64>,
     /// The resize mode can be cover, contain or fill. Defaults to cover.
     /// Cover resizes the image to maintain it's aspect ratio while filling the entire width and height.
     /// Contain resizes the image to maintain it's aspect ratio while fitting the entire image within the width and height.
     /// Fill resizes the image to fill the entire width and height. If the object's aspect ratio does not match the width and height, the image will be stretched to fit.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub resize: Option<&'a str>,
     /// Specify the format of the image requested.
     ///
     /// When using 'origin' we force the format to be the same as the original image.
     /// When this option is not passed in, images are optimized to modern image formats like Webp.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<&'a str>,
     /// Sets the quality of the returned image
     ///
     /// A number from 20 to 100, with 100 being the highest quality. Defaults to 80
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub quality: Option<u8>,
 }
 
