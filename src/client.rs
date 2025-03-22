@@ -837,11 +837,13 @@ impl StorageClient {
         let res_status = res.status();
         let res_body = res.text().await?;
 
-        let response: SignedUploadUrlResponse =
+        let mut response: SignedUploadUrlResponse =
             serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
                 status: res_status,
                 message: res_body,
             })?;
+
+        response.url = format!("{}{}{}", self.project_url, STORAGE_V1, response.url);
 
         Ok(response)
     }
