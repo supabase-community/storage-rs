@@ -741,7 +741,7 @@ impl StorageClient {
             })?;
 
         Ok(format!(
-            "{}{}/{}",
+            "{}{}{}",
             self.project_url, STORAGE_V1, signed_url_response.signed_url
         ))
     }
@@ -797,7 +797,7 @@ impl StorageClient {
 
         let signed_urls: Vec<String> = signed_url_response
             .into_iter()
-            .map(|r| r.signed_url)
+            .map(|r| format!("{}{}{}", self.project_url, STORAGE_V1, r.signed_url))
             .collect();
 
         Ok(signed_urls)
