@@ -21,7 +21,7 @@ cargo add supabase-storage-rs
 ### Create a Storage Client
 ```rust
 // You can manually pass in the values
-let auth_client = StorageClient::new(project_url, api_key, jwt_secret).unwrap();
+let auth_client = StorageClient::new(project_url, api_key).unwrap();
 
 // Or you can use environment variables
 // Requires `SUPABASE_URL` and`SUPABASE_API_KEY` environment variables
