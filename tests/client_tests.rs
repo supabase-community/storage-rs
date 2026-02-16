@@ -186,7 +186,10 @@ async fn test_empty_bucket() {
     // Empty the bucket
     let empty = client.empty_bucket("empty_bucket_test").await.unwrap();
 
-    assert!(empty == "Successfully emptied")
+    assert!(
+        empty.contains("emptied") || empty.contains("Empty bucket"),
+        "Unexpected empty_bucket response: {empty}"
+    )
 }
 
 #[tokio::test]

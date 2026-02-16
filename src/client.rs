@@ -8,9 +8,9 @@ use crate::{
     models::{
         Bucket, BucketResponse, Buckets, CopyFilePayload, CopyFileResponse, CreateBucket,
         CreateBucketResponse, CreateMultipleSignedUrlsPayload, CreateSignedUrlPayload,
-        DownloadOptions, FileObject, FileOptions, FileSearchOptions, ListFilesPayload, MimeType,
-        MoveFilePayload, ObjectResponse, SignedUploadUrlResponse, SignedUrlResponse, StorageClient,
-        UpdateBucket, UploadToSignedUrlResponse, HEADER_API_KEY, STORAGE_V1,
+        DownloadOptions, FileInfo, FileObject, FileOptions, FileSearchOptions, ListFilesPayload,
+        MimeType, MoveFilePayload, ObjectResponse, SignedUploadUrlResponse, SignedUrlResponse,
+        StorageClient, UpdateBucket, UploadToSignedUrlResponse, HEADER_API_KEY, STORAGE_V1,
     },
 };
 
@@ -463,11 +463,30 @@ impl StorageClient {
             .await
     }
 
-    // TODO: Incorporate download options
     /// Download the designated file
+    ///
+    /// Optionally apply image transformations or trigger a browser download.
+    ///
     /// # Example
-    /// ```rust
-    /// let file = client.download_file("bucket_id", file, "path/to/file.txt", Some(options)).await.unwrap();
+    /// ```rust,no_run
+    /// # use supabase_storage_rs::models::{StorageClient, DownloadOptions, TransformOptions};
+    /// # async fn example(client: &StorageClient) {
+    /// // Download without options
+    /// let file = client.download_file("bucket_id", "path/to/file.txt", None).await.unwrap();
+    ///
+    /// // Download with image transformation
+    /// let options = DownloadOptions {
+    ///     transform: Some(TransformOptions {
+    ///         width: Some(200),
+    ///         height: Some(200),
+    ///         resize: Some("cover"),
+    ///         format: None,
+    ///         quality: Some(80),
+    ///     }),
+    ///     download: None,
+    /// };
+    /// let file = client.download_file("bucket_id", "path/to/image.jpg", Some(options)).await.unwrap();
+    /// # }
     /// ```
     pub async fn download_file(
         &self,
@@ -483,19 +502,27 @@ impl StorageClient {
             );
         }
 
-        let mut renderpath = "object";
-        if let Some(opts) = options {
-            if opts.transform.is_some() {
-                renderpath = "render/image/authenticated"
-            }
-        }
+        let has_transform = options.as_ref().is_some_and(|o| o.transform.is_some());
+        let renderpath = if has_transform {
+            "render/image/authenticated"
+        } else {
+            "object"
+        };
+
+        let base_url = format!(
+            "{}{}/{}/{}/{}",
+            self.project_url, STORAGE_V1, renderpath, bucket_id, path
+        );
+
+        let url = if let Some(ref opts) = options {
+            build_url_with_options(&base_url, opts)?
+        } else {
+            base_url
+        };
 
         let res = self
             .client
-            .get(format!(
-                "{}{}/{}/{}/{}",
-                self.project_url, STORAGE_V1, renderpath, bucket_id, path
-            ))
+            .get(url)
             .headers(headers)
             .send()
             .await?;
@@ -550,6 +577,111 @@ impl StorageClient {
             })?;
 
         Ok(message)
+    }
+
+    /// Retrieve metadata about a file without downloading it.
+    ///
+    /// Returns a [`FileInfo`] struct containing the file's size, content type,
+    /// timestamps, and other metadata.
+    ///
+    /// # Example
+    /// ```rust,no_run
+    /// # use supabase_storage_rs::models::StorageClient;
+    /// # async fn example(client: &StorageClient) {
+    /// let info = client.file_info("my_bucket", "path/to/file.txt").await.unwrap();
+    /// println!("Size: {:?}", info.size);
+    /// # }
+    /// ```
+    pub async fn file_info(
+        &self,
+        bucket_id: &str,
+        path: &str,
+    ) -> Result<FileInfo, Error> {
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
+
+        let res = self
+            .client
+            .get(format!(
+                "{}{}/object/info/{}/{}",
+                self.project_url, STORAGE_V1, bucket_id, path
+            ))
+            .headers(headers)
+            .send()
+            .await?;
+
+        let res_status = res.status();
+        let res_body = res.text().await?;
+
+        if !res_status.is_success() {
+            return Err(Error::StorageError {
+                status: res_status,
+                message: res_body,
+            });
+        }
+
+        let info: FileInfo =
+            serde_json::from_str(&res_body).map_err(|_| Error::StorageError {
+                status: res_status,
+                message: res_body,
+            })?;
+
+        Ok(info)
+    }
+
+    /// Check if a file exists in the bucket.
+    ///
+    /// Uses a HEAD request for efficiency (no body is downloaded).
+    /// Returns `true` if the file exists, `false` if it does not.
+    ///
+    /// # Example
+    /// ```rust,no_run
+    /// # use supabase_storage_rs::models::StorageClient;
+    /// # async fn example(client: &StorageClient) {
+    /// if client.exists("my_bucket", "path/to/file.txt").await.unwrap() {
+    ///     println!("File exists!");
+    /// }
+    /// # }
+    /// ```
+    pub async fn exists(
+        &self,
+        bucket_id: &str,
+        path: &str,
+    ) -> Result<bool, Error> {
+        let mut headers = self.headers.clone();
+        if !headers.contains_key(AUTHORIZATION) {
+            headers.insert(
+                AUTHORIZATION,
+                HeaderValue::from_str(&format!("Bearer {}", &self.api_key))?,
+            );
+        }
+
+        let res = self
+            .client
+            .head(format!(
+                "{}{}/object/{}/{}",
+                self.project_url, STORAGE_V1, bucket_id, path
+            ))
+            .headers(headers)
+            .send()
+            .await?;
+
+        let status = res.status();
+        if status.is_success() {
+            Ok(true)
+        } else if status.as_u16() == 404 || status.as_u16() == 400 {
+            Ok(false)
+        } else {
+            Err(Error::StorageError {
+                status,
+                message: format!("Unexpected status: {}", status),
+            })
+        }
     }
 
     /// List all files that match your search criteria
@@ -1058,7 +1190,7 @@ pub fn build_url_with_options(url_str: &str, options: &DownloadOptions) -> Resul
 
         if let Some(resize) = transform.resize {
             match resize {
-                "conver" | "contain" | "fill" => {
+                "cover" | "contain" | "fill" => {
                     query_pairs.append_pair("resize", resize);
                 }
                 _ => {} // Invalid resize option, ignore

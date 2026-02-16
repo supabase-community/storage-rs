@@ -21,11 +21,11 @@ cargo add supabase-storage-rs
 ### Create a Storage Client
 ```rust
 // You can manually pass in the values
-let auth_client = StorageClient::new(project_url, api_key).unwrap();
+let storage_client = StorageClient::new(project_url, api_key).unwrap();
 
 // Or you can use environment variables
-// Requires `SUPABASE_URL` and`SUPABASE_API_KEY` environment variables
-let auth_client = StorageClient::new_from_env().unwrap();
+// Requires `SUPABASE_URL` and `SUPABASE_API_KEY` environment variables
+let storage_client = StorageClient::new_from_env().unwrap();
 ```
 
 ### Create a Bucket
@@ -289,26 +289,61 @@ let url = client
    .unwrap();
 ```
 
+### File Info
+
+Retrieve metadata about a file without downloading it:
+
+```rust
+let info = client
+   .file_info("bucket_id", "path/to/file.txt")
+   .await
+   .unwrap();
+
+// FileInfo contains:
+//   id, name, version, size, content_type,
+//   cache_control, etag, last_modified,
+//   created_at, bucket_id, metadata
+println!("Size: {:?} bytes", info.size);
+println!("Type: {:?}", info.content_type);
+```
+
+### Check if a File Exists
+
+Efficiently check file existence using a HEAD request (no body download):
+
+```rust
+let exists = client
+   .exists("bucket_id", "path/to/file.txt")
+   .await
+   .unwrap();
+
+if exists {
+    println!("File found!");
+}
+```
+
 ## Features
-- [x] Create Bucket 
-- [x] Delete Bucket 
+- [x] Create Bucket
+- [x] Delete Bucket
 - [x] Update Buckets
-- [x] Get Bucket 
+- [x] Get Bucket
 - [x] List Buckets
 - [x] Empty Bucket
-- [x] Upload a file 
-- [x] Update a file 
-- [x] Download a file 
-- [x] List files in a bucket 
+- [x] Upload a file
+- [x] Update a file
+- [x] Download a file
+- [x] List files in a bucket
 - [x] Replace a file in a bucket
 - [x] Move a file in a bucket
 - [x] Copy a file in a bucket
 - [x] Delete files in a bucket
-- [x] Create signed URL 
+- [x] Create signed URL
 - [x] Create multiple signed URLs
 - [x] Create signed upload URLs
 - [x] Upload to a signed URL
 - [x] Retrieve public URL
+- [x] File info (metadata retrieval)
+- [x] File existence check
 
 
 ## Contributions

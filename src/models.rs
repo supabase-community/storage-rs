@@ -126,7 +126,6 @@ pub enum Column {
     LastAccessedAt,
 }
 
-// TODO: Forgot to add transform
 #[derive(Default, Debug, Clone, Serialize, PartialEq)]
 pub(crate) struct CreateSignedUrlPayload<'a> {
     #[serde(rename = "expiresIn")]
@@ -348,6 +347,35 @@ pub struct ObjectResponse {
     pub id: String,
     #[serde(rename = "Key")]
     pub key: String,
+}
+
+/// Detailed information about a file in storage.
+///
+/// Returned by `file_info()` — contains metadata like size, content type, and timestamps.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct FileInfo {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub size: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "contentType")]
+    pub content_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "cacheControl")]
+    pub cache_control: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub etag: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "lastModified")]
+    pub last_modified: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "created_at")]
+    pub created_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none", rename = "bucketId")]
+    pub bucket_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<serde_json::Value>,
 }
 
 pub type Buckets = Vec<Bucket>;
